@@ -17,8 +17,8 @@ $BODY_ELEMENT = "body"; //TODO: make user defined
 	<script src="https://ajax.aspnetcdn.com/ajax/jquery.ui/1.12.1/jquery-ui.js"></script>
         <!-- script src="../vendor/raphael.js"></script see below -->
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.3.0/raphael.js" integrity="sha256-lUVl8EMDN2PU0T2mPMN9jzyxkyOwFic2Y1HJfT5lq8I=" crossorigin="anonymous"></script>
-        <!-- script src="../Treant.js"></script see below -->
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/treant-js/1.0/Treant.js" integrity="sha256-znpgHNqR9Hjjydllxj3UCvOia54DxgQcIoacHEXUSLo=" crossorigin="anonymous"></script>
+        <script src="Treant.js"></script>
+	<!-- script src="https://cdnjs.cloudflare.com/ajax/libs/treant-js/1.0/Treant.js" integrity="sha256-znpgHNqR9Hjjydllxj3UCvOia54DxgQcIoacHEXUSLo=" crossorigin="anonymous"></script-->
         <script src="theme_builder.js"></script>
         <script src="dialogesBoxes.js"></script>
         <script>
@@ -294,12 +294,14 @@ echo "var arr = " . json_encode($nodes, JSON_UNESCAPED_SLASHES) . ";\n";
                 var innerH = arr[i].inner_html; //could be null
 
                 if (null !== innerH && innerH.length > 0) {
-		    console.log("hasInnerHtml");
+		    console.log("hasInnerHtml: " + i);
                     node.HTMLclass = "hasInnerHtml"; //just for marking "has text"
                     node.text.data_innerhtml = innerH;
+		    node.nodeInnerHTML = innerH;
                 } else {
-		    console.log("has no innerHtml");
+		    console.log("has no innerHtml: " + i);
                     node.text.data_innerhtml = "";
+		    node.nodeInnerHTML = innerH;
                 }
 
 
@@ -345,7 +347,7 @@ echo "var arr = " . json_encode($nodes, JSON_UNESCAPED_SLASHES) . ";\n";
                 }
             }
 
-            var chart2 = new Treant(simple_chart_config2, null, $);
+            chart2 = new Treant(simple_chart_config2, null, $);
 
             var nodes = document.getElementsByClassName("node");
             console.log("Nodes:");
