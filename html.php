@@ -29,16 +29,22 @@ class html {
 	return "</$str>";
     }
 
-    function p($innerHTML, $attributes = array()) {
-	echo "<p";
+    function p($innerHTML, $attributes = array(), $echo = true) {
+	if($echo) echo "<p";
+	else $ret = "<p";
 	if(!empty($attributes)){
 
 		foreach($attributes as $key=>$val){
-
-			echo " $key = '$val'";
+			if($echo)
+				echo " $key = '$val'";
+			else $ret .= " $key = '$val'";
 		}
 	}
-	echo ">$innerHTML</p>";
+	if($echo) echo ">$innerHTML</p>";
+	else{
+		$ret .= ">$innerHTML</p>";
+		return $ret;
+	}
     }
 
     function span($innerHTML, $attributes = array()) {
@@ -87,6 +93,12 @@ class html {
 	}
 	echo ">$innerHTML</h1>";
     }
+
+    function cssClass($name, $css, $echo = true){
+	if($echo)
+	echo ".$name{ $css }";
+	else return ".$name{ $css }";
+    } 
 
 }
 

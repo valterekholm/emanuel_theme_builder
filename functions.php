@@ -12,8 +12,24 @@ return $rows;
 
 }
 
-function printLevel($parent_id, $level = 0){
+function printLevel($parent_id, $level, $print_base_node = false){
+$db = new db();
+
 $children = getChildren($parent_id);
+
+$base_name = "";
+
+if($print_base_node){
+
+$sql = "SELECT * FROM nodes JOIN html_element e ON (element_id = e.id) WHERE nodes.id = $parent_id";
+$res = $db->select_query($sql);
+$row = $res->fetch();
+
+$base_name = $row["name"];
+
+echo "<$base_name>";
+
+}
 
 foreach($children as $child){
         //echo $level . " " . $child["id"] . " " . $child["name"] . "<br>";
@@ -26,6 +42,10 @@ foreach($children as $child){
 		//is not an empty type of element
 		echo "</" . $child["name"] . ">";
 	}
+}
+
+if($print_base_node){
+echo "</$base_name>";
 }
 }
 

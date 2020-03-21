@@ -95,3 +95,10 @@ font-family: sans;
 	padding: 15px;
 	border-radius: 10px;
 }
+
+#classes p, #element_css p{
+width: 200px;
+border: 1px solid gray;
+border-radius:3px;
+word-break: break-all;
+}

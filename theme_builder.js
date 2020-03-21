@@ -12,6 +12,32 @@ function getAjax(url, success) {
 	return xhr;
 }
 
+
+function postAjax(url, data, success) {
+	console.log("postAjax till url " + url);
+	var params = typeof data == 'string' ? data : Object.keys(data).map(
+		function(k){ return encodeURIComponent(k) + '=' + encodeURIComponent(data[k]) }
+	).join('&');
+
+	console.log(params);
+
+	var xhr = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
+	xhr.open('POST', url, true);
+	xhr.onreadystatechange = function() {
+		if (xhr.readyState>3 && xhr.status==200) {
+			console.log("postAjax succeeded");
+			success(xhr.responseText);
+		}
+		else if (xhr.status>=500) alert("Server error");
+		else if (xhr.status>=400) alert("Client error");
+	};
+
+	/*xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');*/
+	xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+	xhr.send(params);
+	return xhr;
+}
+
 function showGuide(){
 var infoDiv = document.createElement("div");
 infoDiv.style = "width:100%;height:33%;background:rgba(230,250,240,.8); position:fixed;bottom:0;left:0; border: 0 solid blue; border-top-width:5px; text-align: center;";

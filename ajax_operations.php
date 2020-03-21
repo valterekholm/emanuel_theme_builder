@@ -4,11 +4,16 @@
 if(isset($_GET["add_node"]) && isset($_GET["parent_node_id"]) && isset($_GET["child_element_id"])){
 
 	require_once("db.php");
+	require_once("sess.php");
+
+	$sess = new sess();
 
 	$add_node = $_GET["add_node"];
 	$parent_node_id = $_GET["parent_node_id"];
 	$child_element_id = $_GET["child_element_id"];
 	error_log(print_r($_GET, true));
+	$wep = $sess->getChoosenWebpage();
+	error_log("add node med webpage id $wep");
 
 	if(isset($_GET["inner_html"])){
 		$inner_html = urldecode($_GET["inner_html"]);
@@ -22,7 +27,44 @@ if(isset($_GET["add_node"]) && isset($_GET["parent_node_id"]) && isset($_GET["ch
 
 	$db = new db();
 
-	$row_count = $db->insert_query("INSERT INTO nodes (element_id, parent_node_id, inner_html) VALUES (?,?,?)", array($c, $p, $inner_html));
+	$row_count = $db->insert_query("INSERT INTO nodes (element_id, parent_node_id, inner_html, web_page_id) VALUES (?,?,?,?)", array($c, $p, $inner_html,$wep));
+
+	if($row_count > 0){
+		echo "got 3 args ok from AJAX, row_count: $row_count";
+	}
+	else{
+		http_response_code(500);//Internal Server Error
+		echo "Query failed";
+	}
+}
+
+if(isset($_POST["add_node"]) && isset($_POST["parent_node_id"]) && isset($_POST["child_element_id"])){
+
+	require_once("db.php");
+	require_once("sess.php");
+
+	$sess = new sess();
+
+	$add_node = $_POST["add_node"];
+	$parent_node_id = $_POST["parent_node_id"];
+	$child_element_id = $_POST["child_element_id"];
+	error_log(print_r($_POST, true));
+	$wep = $sess->getChoosenWebpage();
+	error_log("add node med webpage id $wep");
+
+	if(isset($_POST["inner_html"])){
+		$inner_html = urldecode($_POST["inner_html"]);
+	}
+	else{
+		$inner_html = "";
+	}
+
+	$p = (int) preg_replace('/[^0-9]/', '', $parent_node_id);
+	$c = (int) preg_replace('/[^0-9]/', '', $child_element_id);
+
+	$db = new db();
+
+	$row_count = $db->insert_query("INSERT INTO nodes (element_id, parent_node_id, inner_html, web_page_id) VALUES (?,?,?,?)", array($c, $p, $inner_html,$wep));
 
 	if($row_count > 0){
 		echo "got 3 args ok from AJAX, row_count: $row_count";
@@ -34,6 +76,7 @@ if(isset($_GET["add_node"]) && isset($_GET["parent_node_id"]) && isset($_GET["ch
 }
 //add element
 //is_empty be 'yes' or *
+
 if(isset($_GET["add_element"]) && isset($_GET["e_name"]) && isset($_GET["is_empty"])){
 
         require_once("db.php");
@@ -41,7 +84,7 @@ if(isset($_GET["add_element"]) && isset($_GET["e_name"]) && isset($_GET["is_empt
         $add_element = $_GET["add_element"];
         $e_name = $_GET["e_name"];
         $is_empty = $_GET["is_empty"];
-        error_log(print_r($_GET, true));
+        error_log("add E" . print_r($_GET, true));
 
 	$empty = $is_empty == "yes" ? 1 : 0;
         $db = new db();
@@ -77,6 +120,15 @@ if(isset($_GET["add_webpage"]) && isset($_GET["name"])){
         }
 }
 
+if(isset($_GET["choose_webpage"]) && isset($_GET["wep_id"])){
+
+	require_once("sess.php");
+	$id = $_GET["wep_id"];
+
+	$sess = new sess();
+	$sess->setChoosenWebpage($id);
+	echo "Have choosen id $id";
+}
 
 
 if(isset($_GET["update_node"]) && isset($_GET["node_id"]) && isset($_GET["element_id"]) && isset($_GET["inner_html"]) && isset($_GET["parent_id"])){
@@ -95,7 +147,61 @@ if(isset($_GET["update_node"]) && isset($_GET["node_id"]) && isset($_GET["elemen
 	$values = array($element_id, $parent_id, $inner_html, $node_id);
 	$db = new db();
 
-	$row_count = $db->insert_query($sql, $values);
+	$row_count = $db->update_query($sql, $values, false);
+
+        if($row_count > 0){
+                echo "got 4 args ok from AJAX, row_count: $row_count";
+        }
+        else{
+                http_response_code(500);//Internal Server Error
+                echo "Query failed";
+        }
+}
+
+if(isset($_POST["update_node"]) && isset($_POST["node_id"]) && isset($_POST["element_id"]) && isset($_POST["inner_html"]) && isset($_POST["parent_id"])){
+	error_log("update_node POST");
+
+	require_once("db.php");
+
+	$node_id = $_POST["node_id"];
+	$element_id = $_POST["element_id"];
+	$parent_id = $_POST["parent_id"];
+	$inner_html = $_POST["inner_html"];
+
+	error_log("update node POST, " . print_r($_POST, true));
+
+	$sql = "UPDATE nodes SET element_id = ?, parent_node_id = ?, inner_html = ?  WHERE id = ?";
+	$values = array($element_id, $parent_id, $inner_html, $node_id);
+	$db = new db();
+
+	$row_count = $db->update_query($sql, $values, false);
+
+        if($row_count > 0){
+                echo "got 4 args ok from AJAX, row_count: $row_count";
+        }
+        else{
+                http_response_code(500);//Internal Server Error
+                echo "Query failed";
+        }
+}
+if(isset($_POST["update_element_css"]) && isset($_POST["e_name"]) && isset($_POST["wep"]) && isset($_POST["css"])){
+	error_log("update_element_css POST");
+
+	require_once("db.php");
+
+	$e_name = $_POST["e_name"];
+	$wep = $_POST["wep"];
+	$css = $_POST["css"];
+
+	error_log(print_r($_POST, true));
+
+	$sql = "UPDATE element_css SET css = ? WHERE name = ? AND web_page_id = ?";
+	$values = array($css, $e_name, $wep);
+	$db = new db();
+
+	$row_count = $db->update_query($sql, $values, false);
+
+	error_log("row_count: $row_count");
 
         if($row_count > 0){
                 echo "got 4 args ok from AJAX, row_count: $row_count";
@@ -212,6 +318,14 @@ if(isset($_GET["step_up"]) && isset($_GET["node_id"])){
 		echo "Element is alone";
 		exit;
 	}
+}
+
+if(isset($_GET["clear_choosen_webpage"])){
+	require_once("sess.php");
+
+	$sess = new sess();
+	$sess->clearChoosenWebpage();
+	echo "Choosen webpage: " . $sess->getChoosenWebpage();
 }
 
 /*

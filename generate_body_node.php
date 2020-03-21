@@ -2,11 +2,13 @@
 
 require_once("db.php");
 require_once("html.php");
+require_once("sess.php");
 
-$BODY_ELEMENT = "body"; //TODO: make user defined
+$BODY_ELEMENT = "body"; //TODO: make user defined name, if no html elem is saved... or else if no html-elem has parent:null
 
 $db = new db();
 $html = new html();
+$sess = new sess();
 
 $sq1 = "SELECT * FROM html_element WHERE name = '$BODY_ELEMENT'";
 
@@ -26,8 +28,18 @@ $html->p("Det saknas rätt html_element ('$BODY_ELEMENT'), därför avbryter jag
 exit;
 }
 
+$wep = $sess->getChoosenWebpage();
 
-$sql = "select * from nodes";
+if(!$wep){
+	$html->p("Du måste skapa/välja webbsida: <a href='choose_webpage.php'>OK</a>");
+	exit;
+}
+else{
+	$html->p("Found choosen webpage: $wep");
+}
+
+
+$sql = "select * from nodes WHERE web_page_id = $wep";
 
 $res = $db->select_query($sql);
 error_log(print_r($res, true));
@@ -47,12 +59,13 @@ foreach ($rows as $row) {
        }
 }
 
-$sql2 = "INSERT INTO nodes (element_id) VALUES (" . $found_body_e["id"] . ")";
+$sql2 = "INSERT INTO nodes (element_id, web_page_id) VALUES (" . $found_body_e["id"] . ", $wep)";
 
 if(!$found_body_n){
 	echo $sql2;
 	$res2 = $db->select_query($sql2);
-	if($res2) $html->p("OK; $BODY_ELEMENT");
+	if($res2){ $html->p("OK; $BODY_ELEMENT"); }
+	else{ $html->p("Query misslyckades?");}
 }
 else{
 	$html->p("Det verkar finnas en body-node (samt element '$BODY_ELEMENT')");

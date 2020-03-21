@@ -1,22 +1,25 @@
 <?php
 require_once("db.php");
 require_once("html.php");
+require_once("sess.php");
+
+error_reporting(E_ALL);
 
 $BODY_ELEMENT = "body"; //TODO: make user defined
 ?>
 
 <html>
     <head>
-	<!-- link rel="stylesheet" href="../jquery-ui.css" see below -->
-	<link rel="stylesheet" href="https://ajax.aspnetcdn.com/ajax/jquery.ui/1.12.1/themes/cupertino/jquery-ui.css">
+	<link rel="stylesheet" href="../jquery-ui.css">
+	<!-- link rel="stylesheet" href="https://ajax.aspnetcdn.com/ajax/jquery.ui/1.12.1/themes/cupertino/jquery-ui.css" -->
 	<link rel="stylesheet" href="Treant.css">
 	<link rel="stylesheet" href="style.css">
-        <!--script src="../jquery-3.4.1.js"></script see below -->
-	<script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.4.1.min.js"></script>
-        <!-- script src="../jquery-ui.js"></script see below -->
-	<script src="https://ajax.aspnetcdn.com/ajax/jquery.ui/1.12.1/jquery-ui.js"></script>
-        <!-- script src="../vendor/raphael.js"></script see below -->
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.3.0/raphael.js" integrity="sha256-lUVl8EMDN2PU0T2mPMN9jzyxkyOwFic2Y1HJfT5lq8I=" crossorigin="anonymous"></script>
+        <script src="../jquery-3.4.1.js"></script>
+	<!--script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.4.1.min.js"></script-->
+        <script src="../jquery-ui.js"></script>
+	<!--script src="https://ajax.aspnetcdn.com/ajax/jquery.ui/1.12.1/jquery-ui.js"></script-->
+        <script src="../vendor/raphael.js"></script>
+	<!--script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.3.0/raphael.js" integrity="sha256-lUVl8EMDN2PU0T2mPMN9jzyxkyOwFic2Y1HJfT5lq8I=" crossorigin="anonymous"></script-->
         <script src="Treant.js"></script>
 	<!-- script src="https://cdnjs.cloudflare.com/ajax/libs/treant-js/1.0/Treant.js" integrity="sha256-znpgHNqR9Hjjydllxj3UCvOia54DxgQcIoacHEXUSLo=" crossorigin="anonymous"></script-->
         <script src="theme_builder.js"></script>
@@ -49,14 +52,19 @@ $BODY_ELEMENT = "body"; //TODO: make user defined
 			}
 			else{
 				innerHtml = prompt("Enter any inner html:");
+				//if(innerHtml.indexOf("'")>-1){	alert("Found quote"); }
 			}
 
                         if (innerHtml != null) {
                             queryArgs = queryArgs + "&inner_html=" + encodeURI(innerHtml);
                         }
 
-                        getAjax("ajax_operations.php?" + queryArgs, function (resp) {
-                            //alert(resp);
+                        /*getAjax("ajax_operations.php?" + queryArgs, function (resp) {
+                            alert(resp);
+                            location.reload();
+                        });*/
+                        postAjax("ajax_operations.php", queryArgs, function (resp) {
+                            alert(resp);
                             location.reload();
                         });
 
@@ -84,20 +92,24 @@ $BODY_ELEMENT = "body"; //TODO: make user defined
     <body>
 
 <?php
-echo "theme builder";
+$db = new db();
+$html = new html();
+$sess = new sess();
+
+$wep = $sess->getChoosenWebpage();
+
+echo "theme builder (webpage $wep)";
 
 echo "<div style='position:fixed; top:0; right:0; width:40px; height:40px; background:green;font-size:40px' onClick='showGuide()'><a href='#'>?</a></div>";
 
 
-$db = new db();
-$html = new html();
 
 $sql_wp = "SELECT * FROM web_page";
 $res = $db->select_query($sql_wp);
 $rows_wp = $res->fetchAll();
 
-if(empty($rows_wp)){
-	$html->p("You must first create a webpage, <a href='choose_webpage.php'>OK</a>");
+if(empty($rows_wp) || empty($sess->getChoosenWebpage())){
+	$html->p("You must first create/choose a webpage (session wep is ".$sess->getChoosenWebpage()."), <a href='choose_webpage.php'>OK</a>");
 	exit;
 }
 
@@ -135,7 +147,7 @@ else{
         $html->h3("Element types:");
         foreach ($rows as $row) {
 	    if($row["name"] == $BODY_ELEMENT){
-		$html->span("(" . $row["name"] . ")");//this one should allready be out there, so don't add it again
+		$html->span("(id: " . $row["id"] . ", " . $row["name"] . ")");//this one should allready be out there, so don't add it again
 	    }
 	    else{
 		$isEmptyTag = $row["is_empty_tag"] == 1;
@@ -155,13 +167,22 @@ else{
 
                 </fieldset>
             </form>
+	    <form id="alter_element_css">
+		<fieldset>
+			<legend>Edit element css</legend>
+			<input type="hidden" id="el_css_web_page_id" value="<?=$wep?>">
+			<input type="text" id="el_name" name="el_name" placeholder="element name">
+			<input type="text" id="el_css" name="el_css" placeholder="css">
+			<!--input type="button" onClick="updateElementCss()" value="update"-->
+		</fieldset>
+	    </form>
 
 	</div>
 
 <?php
 //COALESCE(n.parent_node_id, \"null\")
 //Get all nodes
-$sql = "select n.id, parent_node_id, e.name, e.is_empty_tag, n.element_id, inner_html from nodes n left join html_element e on (n.element_id = e.id)";
+$sql = "select n.id, parent_node_id, e.name, e.is_empty_tag, n.element_id, inner_html from nodes n left join html_element e on (n.element_id = e.id) WHERE web_page_id = $wep";
 $res = $db->select_query($sql);
 $rows = $res->fetchAll();
 
@@ -242,30 +263,44 @@ if(!$found_topnode){
             </form>
         </div>
 
-
-
-
-        <script>
-
-            var nodes = [];
+<div id="classes">
+<h3>Classes</h3>
+<?php
+$sql3 = "select * from classes";//todo: use web_page_id
+$res3 = $db->select_query($sql3);
+$rows3 = $res3->fetchAll();
+foreach($rows3 as $row){
+$html->p($html->cssClass($row["name"], $row["css"], false));
+}
+?>
+</div>
+<div id="element_css">
+<h3>Element css</h3>
+<?php
+$sql4 = "select * from element_css c left join html_element e on (c.name = e.id)";//todo: use web_page_id
+$res4 = $db->select_query($sql4);
+$rows4 = $res4->fetchAll();
+foreach($rows4 as $row){
+	$html->p($row["name"]."{ ".$row["css"]." } <a href='#' class='editElemCss'>edit</a>",
+	array("id"=>"ec_".$row["id"], "data-element"=>$row["name"], "data-css"=>$row["css"], "data-wep"=>$wep));
+}
+?>
+</div>
+<script>
+var nodes = [];
 
 <?php
 $nodes = array();
 foreach ($rows as $row) {
-    $nodes[] = $row;
+	$nodes[] = $row;
 }
 $nds = json_encode($nodes);
 echo "var arr = " . json_encode($nodes, JSON_UNESCAPED_SLASHES) . ";\n";
 ?>
-
             console.log(arr);
-
             var len = arr.length;
-
             var ids = [];//ids allready handled...
-
             var newNodes = [];
-
             for (var i = 0; i < len; i++) {
                 ids.push(arr[i].id);//save those who have to be handled
 
@@ -287,14 +322,12 @@ echo "var arr = " . json_encode($nodes, JSON_UNESCAPED_SLASHES) . ";\n";
                     node.text.data_parentid = "0";
                     node.HTMLclass = "isBaseNode";
                 }
-
                 node.text.data_isemptytag = arr[i].is_empty_tag;
-
                 //console.log(arr[i].inner_html);
                 var innerH = arr[i].inner_html; //could be null
 
                 if (null !== innerH && innerH.length > 0) {
-		    console.log("hasInnerHtml: " + i);
+		    console.log("hasInnerHtml: " + i + " : " + innerH);
                     node.HTMLclass = "hasInnerHtml"; //just for marking "has text"
                     node.text.data_innerhtml = innerH;
 		    node.nodeInnerHTML = innerH;
@@ -303,8 +336,6 @@ echo "var arr = " . json_encode($nodes, JSON_UNESCAPED_SLASHES) . ";\n";
                     node.text.data_innerhtml = "";
 		    node.nodeInnerHTML = innerH;
                 }
-
-
                 var btn = {val: "edit", href: "/", target: "_self"};
                 node.text.contact = btn;
 
@@ -353,8 +384,6 @@ echo "var arr = " . json_encode($nodes, JSON_UNESCAPED_SLASHES) . ";\n";
             console.log("Nodes:");
             console.log(nodes);
 
-
-
             var len = nodes.length;
             for (var i = 0; i < len; i++) {
 
@@ -375,10 +404,11 @@ echo "var arr = " . json_encode($nodes, JSON_UNESCAPED_SLASHES) . ";\n";
                     var par = ev.target.parentElement;
                     console.log(par);
                     var id = getAfter_(par.id);
+			//TODO: if no children, don't ask, check
                     var moveChildren = confirm("Move up children (save them)?");
                     var move = moveChildren ? "yes" : "no";
                     getAjax("ajax_operations.php?delete=yes&node_id=" + id + "&move_children=" + move, function (resp) {
-                        //alert(resp);
+                        alert(resp);
                         location.reload();
                     });
                 });
@@ -397,7 +427,7 @@ echo "var arr = " . json_encode($nodes, JSON_UNESCAPED_SLASHES) . ";\n";
                     console.log(par);
                     var id = getAfter_(par.id);
                     getAjax("ajax_operations.php?step_up=yes&node_id=" + id, function (resp) {
-                        //alert(resp);
+                        alert(resp);
                         location.reload();
                     });
                 });
@@ -429,11 +459,23 @@ echo "var arr = " . json_encode($nodes, JSON_UNESCAPED_SLASHES) . ";\n";
 
                 console.log("addElementType : " + name + ", isChecked : " + isChecked);
                 getAjax("ajax_operations.php?add_element=yes&e_name=" + name + "&is_empty=" + isChecked, function (resp) {
-                    //alert(resp);
+                    alert(resp);
                     location.reload();
                 });
             }
+/*
+            function updateElementCss() {
+                var name = document.querySelector("#el_name").value;
+                var webPageId = document.querySelector("#el_css_web_page_id");
+		var css = document.querySelector("#el_css");
 
+                console.log("updateElementCss : " + name + ", css : " + css);
+                getAjax("ajax_operations.php?update_element_css=yes&wep="+webPageId+"&e_name=" + name + "&css=" + css, function (resp) {
+                    alert(resp);
+                    location.reload();
+                });
+            }
+*/
         </script>
 
     </body>

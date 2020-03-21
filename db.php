@@ -23,7 +23,7 @@ class db {
 	}
 	else error_log("false");
 
-
+	$stmt = $this->conn->prepare($sql);
         $stmt = $this->conn->query($sql);
 
         return $stmt;

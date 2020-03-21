@@ -2,9 +2,11 @@
 
 require_once("db.php");
 require_once("html.php");
+require_once("sess.php");
 
 $db = new db();
 $html = new html();
+$sess = new sess();
 
 ?>
 <!DOCTYPE html>
@@ -38,6 +40,8 @@ $res = $db->select_query($sql);
 
 <article>
 <?php
+
+$html->p("wep: " . $sess->getChoosenWebpage());
 
 if($res){
 
@@ -83,6 +87,8 @@ $html->p("No result from query");
 
 <a href="index.php">Start</a>
 
+<button onClick="clearWp()">Clear choice</button>
+
 <script type="text/javascript">
 
 
@@ -92,7 +98,11 @@ getAjax("ajax_operations.php?add_webpage=yes&name=" + encodeURI(wp_name.value), 
 }
 
 function chooseWp(id){
-getAjax("ajax_operations.php?choose_webpage=yes&id=" + id, function(result){location.reload();});
+getAjax("ajax_operations.php?choose_webpage=yes&wep_id=" + id, function(result){alert(result);location.reload();});
+}
+
+function clearWp(){
+getAjax("ajax_operations.php?clear_choosen_webpage=yes", function(result){alert(result);location.reload();});
 }
 
 </script>
