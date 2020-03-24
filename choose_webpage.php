@@ -3,6 +3,7 @@
 require_once("db.php");
 require_once("html.php");
 require_once("sess.php");
+require_once("functions.php");
 
 $db = new db();
 $html = new html();
@@ -26,9 +27,9 @@ $sess = new sess();
 </head>
 <body>
 
-
-
 <?php
+
+printMenu();
 
 $sql = "SELECT * FROM web_page";
 
@@ -84,8 +85,6 @@ $html->p("No result from query");
 <input type="button" value="save" onclick="savepage()">
 </fieldset>
 </form>
-
-<a href="index.php">Start</a>
 
 <button onClick="clearWp()">Clear choice</button>
 

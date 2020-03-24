@@ -49,3 +49,23 @@ echo "</$base_name>";
 }
 }
 
+function printMenu($menu = array("Start" => "index.php", "Render" => "render.php", "Choose webpage" => "choose_webpage.php")){
+
+$html = new html();
+
+$script   = $_SERVER['SCRIPT_NAME'];
+
+echo "<div>";
+echo "<ul class='horizontal_menu'>";
+foreach($menu as $k=>$v){
+	$class = "";
+	if(strpos($script, $v)){
+		$class = " class='highlight'";
+	}
+
+	echo "<li$class><a href='$v'>$k</a></li>";
+}
+echo "</ul>";
+echo "</div>";
+
+}

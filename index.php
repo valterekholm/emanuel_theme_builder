@@ -2,6 +2,7 @@
 require_once("db.php");
 require_once("html.php");
 require_once("sess.php");
+require_once("functions.php");
 
 error_reporting(E_ALL);
 
@@ -97,6 +98,8 @@ $html = new html();
 $sess = new sess();
 
 $wep = $sess->getChoosenWebpage();
+
+printMenu();
 
 echo "theme builder (webpage $wep)";
 
