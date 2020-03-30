@@ -126,3 +126,8 @@ ul.horizontal_menu{
 .highlight{
 	background-color: #777;
 }
+
+fieldset.form select, fieldset.form input, fieldset.form textarea{
+	display: inline-block;
+	vertical-align: middle;
+}

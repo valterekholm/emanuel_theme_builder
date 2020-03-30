@@ -162,7 +162,7 @@ else{
 
         </div>
             <form id="add_element_type">
-                <fieldset>
+                <fieldset class="form">
                     <legend>Add element type</legend>
                     <input type="text" id="e_name" name="e_name" placeholder="name">
                     <input type="checkbox" id="is_empty" name="is_empty"><label for="is_empty" title="This is true only for a few elements like hr br input img col area basefont base frame">Is 'empty tag'</label><br>
@@ -171,11 +171,11 @@ else{
                 </fieldset>
             </form>
 	    <form id="alter_element_css">
-		<fieldset>
+		<fieldset class="form">
 			<legend>Edit element css</legend>
 			<input type="hidden" id="el_css_web_page_id" value="<?=$wep?>">
 			<input type="text" id="el_name" name="el_name" placeholder="element name">
-			<input type="text" id="el_css" name="el_css" placeholder="css">
+			<textarea id="el_css" name="el_css" placeholder="css"></textarea>
 			<!--input type="button" onClick="updateElementCss()" value="update"-->
 		</fieldset>
 	    </form>
@@ -187,9 +187,9 @@ else{
 //Get all nodes
 $sql = "select n.id, parent_node_id, e.name, e.is_empty_tag, n.element_id, inner_html from nodes n left join html_element e on (n.element_id = e.id) WHERE web_page_id = $wep";
 $res = $db->select_query($sql);
-$rows = $res->fetchAll();
+$rows_nodes = $res->fetchAll();
 
-if((empty($rows) || count($rows) == 0) && $found_body_e){
+if((empty($rows_nodes) || count($rows_nodes) == 0) && $found_body_e){
 		$html->p("Du måste generera en body-node (motsvarande $BODY_ELEMENT)... <a href=\"generate_body_node.php\">OK</a>");
 }
 
@@ -202,7 +202,7 @@ $found_topnode = false;
 $html->p("Nodes:");
 echo "<table>";
 $html->tr("<th>id</th><th>name</th><th>parent</th>");
-foreach ($rows as $row) {
+foreach ($rows_nodes as $row) {
     //echo "r";
     $html->tr("<td>" . $row["id"] . "</td><td>" . $row["name"] . "</td><td>" . $row["parent_node_id"] . "</td>");
     if($row["parent_node_id"] == null){
@@ -280,21 +280,40 @@ $html->p($html->cssClass($row["name"], $row["css"], false));
 <div id="element_css">
 <h3>Element css</h3>
 <?php
-$sql4 = "select * from element_css c left join html_element e on (c.name = e.id)";//todo: use web_page_id
+$sql4 = "select e.name, e.id, c.id as cid, c.css from element_css c left join html_element e on (c.name = e.id) WHERE web_page_id = $wep";
 $res4 = $db->select_query($sql4);
 $rows4 = $res4->fetchAll();
 foreach($rows4 as $row){
-	$html->p($row["name"]."{ ".$row["css"]." } <a href='#' class='editElemCss'>edit</a>",
+	$html->p($row["name"]."{ ".$row["css"]." } <a href='#' class='editElemCss'>edit</a> <a href='#' onClick='deleteElementCss(".$row["cid"].")'>delete</a>",
 	array("id"=>"ec_".$row["id"], "data-element"=>$row["name"], "data-css"=>$row["css"], "data-wep"=>$wep));
 }
 ?>
+
+<fieldset class="form">
+<legend>Add element css</legend>
+<form action="ajax_operations.php">
+<input type="hidden" id="css_e_wep" value="<?=$wep?>">
+<select name='html_element' id="css_e">
+<?php
+foreach($rows as $r){
+?>
+	<option value='<?=$r["id"]?>'><?=$r["name"]?></option>
+<?php
+}
+?>
+</select>
+<textarea name='css' id="css_e_css" placeholder="margin: 10px;">
+</textarea>
+<input type="button" value="add" onClick="addElementCss()">
+</form>
+</fieldset>
 </div>
 <script>
 var nodes = [];
 
 <?php
 $nodes = array();
-foreach ($rows as $row) {
+foreach ($rows_nodes as $row) {
 	$nodes[] = $row;
 }
 $nds = json_encode($nodes);
@@ -479,6 +498,27 @@ echo "var arr = " . json_encode($nodes, JSON_UNESCAPED_SLASHES) . ";\n";
                 });
             }
 */
+
+	function addElementCss(){
+		var element = document.querySelector("#css_e").value;
+		var css = document.querySelector("#css_e_css").value;
+		var wep = document.querySelector("#css_e_wep").value;
+		console.log(css);
+		console.log(document.querySelector("#css_e_css"));
+		var queryArgs = "add_element_css=yes&element=" + element + "&css=" + css + "&wep=" + wep;
+		postAjax("ajax_operations.php", queryArgs, function (resp) {
+			alert(resp);
+			location.reload();
+		});
+	}
+
+	function deleteElementCss(id){ //delete_e_css"]) && isset($_GET["e_css_id"
+		var queryArgs = "delete_e_css=yes&e_css_id=" + id;
+		getAjax("ajax_operations.php?"+queryArgs, function (resp) {
+			alert(resp);
+			location.reload();
+		});
+	}
         </script>
 
     </body>

@@ -85,6 +85,7 @@ inner_h = "";
       }
     });
 
+    //editing element-css post
     dialog2 = $("#alter_element_css").dialog({
       autoOpen: false,
       height: 400,

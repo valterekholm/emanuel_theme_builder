@@ -194,8 +194,9 @@ if(isset($_POST["update_element_css"]) && isset($_POST["e_name"]) && isset($_POS
 	$css = $_POST["css"];
 
 	error_log(print_r($_POST, true));
-
-	$sql = "UPDATE element_css SET css = ? WHERE name = ? AND web_page_id = ?";
+	//update via join match
+	//UPDATE element_css c INNER JOIN html_element e ON c.name = e.id SET css = '' WHERE e.name = 'h1' AND web_page_id = 5;
+	$sql = "UPDATE element_css c INNER JOIN html_element e ON c.name = e.id SET css = ? WHERE e.name = ? AND web_page_id = ?";
 	$values = array($css, $e_name, $wep);
 	$db = new db();
 
@@ -211,6 +212,53 @@ if(isset($_POST["update_element_css"]) && isset($_POST["e_name"]) && isset($_POS
                 echo "Query failed";
         }
 }
+
+if(isset($_POST["add_element_css"]) && isset($_POST["element"]) && isset($_POST["wep"]) && isset($_POST["css"])){
+	error_log("add_element_css POST");
+
+	require_once("db.php");
+
+	$element = $_POST["element"];
+	$wep = $_POST["wep"];
+	$css = $_POST["css"];
+
+	error_log(print_r($_POST, true));
+	$sql = "INSERT INTO element_css (name, css, web_page_id) VALUES (?,?,?)";
+	$values = array($element, $css, $wep);
+	$db = new db();
+
+	$row_count = $db->insert_query($sql, $values, false);
+
+	error_log("row_count: $row_count");
+
+        if($row_count > 0){
+                echo "got 4 args ok from AJAX, row_count: $row_count";
+        }
+        else{
+                http_response_code(500);//Internal Server Error
+                echo "Query failed";
+        }
+}
+if(isset($_GET["delete_e_css"]) && isset($_GET["e_css_id"])){
+        error_log("delete_element_css----------");
+        require_once("db.php");
+        $db = new db();
+	$e_css_id = $_GET["e_css_id"];
+	$sql = "DELETE FROM element_css WHERE id = ?";
+	$values = array($e_css_id);
+
+        $row_count = $db->update_query($sql, $values);
+
+        if($row_count > 0){
+                echo "got 2 args ok from AJAX, row_count: $row_count";
+        }
+        else{
+                http_response_code(500);//Internal Server Error
+                echo "Query failed";
+        }
+
+}
+
 
 if(isset($_GET["delete"]) && isset($_GET["node_id"]) && isset($_GET["move_children"])){
         error_log("delete_node-------------------------------------");
