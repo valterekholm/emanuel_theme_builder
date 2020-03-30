@@ -227,7 +227,15 @@ if(isset($_POST["add_element_css"]) && isset($_POST["element"]) && isset($_POST[
 	$values = array($element, $css, $wep);
 	$db = new db();
 
-	$row_count = $db->insert_query($sql, $values, false);
+	try{
+		$row_count = $db->insert_query($sql, $values, false);
+	}
+	catch(Exception $e){//only if place is taken
+		//error_log("caught: $e");
+		echo "The element-css is allready in this web-page";
+		//http_response_code(403);
+		exit;
+	}
 
 	error_log("row_count: $row_count");
 
@@ -236,7 +244,7 @@ if(isset($_POST["add_element_css"]) && isset($_POST["element"]) && isset($_POST[
         }
         else{
                 http_response_code(500);//Internal Server Error
-                echo "Query failed";
+                echo "Query failed"; //text wont reach to front-end
         }
 }
 if(isset($_GET["delete_e_css"]) && isset($_GET["e_css_id"])){

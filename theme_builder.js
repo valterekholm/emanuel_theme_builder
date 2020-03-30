@@ -4,8 +4,8 @@ function getAjax(url, success) {
 	xhr.open('GET', url);
 	xhr.onreadystatechange = function() {
 		if (xhr.readyState>3 && xhr.status==200) success(xhr.responseText);
-		else if (xhr.status>=500) alert("Server error");
-		else if (xhr.status>=400) alert("Client error");
+		else if (xhr.readyState>3 && xhr.status>=500){ alert("Server error (" + xhr.responseText + ")") }
+		else if (xhr.readyState>3 && xhr.status>=400){ alert("Client error (" + xhr.responseText + ")") }
 	};
 	xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 	xhr.send();

@@ -45,6 +45,14 @@ class db {
 	$res = $stmt->execute($values);
 	error_log("stmt: " . print_r($stmt, true));
 	error_log("res: " . print_r($res, true));
+	$error = $stmt->errorInfo()[0];
+	$detail = $stmt->errorInfo()[1];
+	if($error == 23000 && $detail == 1062){
+		//error_log("Place is taken");
+		throw new DomainException('Dublicate error');
+	}
+
+	//error_log("errorInfo: " . print_r($stmt->errorInfo(), true));
 	return $stmt->rowCount();
     }
 
