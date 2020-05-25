@@ -344,18 +344,29 @@ if(isset($_GET["step_up"]) && isset($_GET["node_id"])){
 	$sql = "SELECT * FROM nodes WHERE parent_node_id = $parent_node_id";
 	$stmt = $db->select_query($sql);
 
+	//if is 1 it's the only child
 	if($stmt && $stmt->rowCount() > 1){
 		$rows = $stmt->fetchAll();
 		if($rows[0]["id"] != $node_id){
 			$lastId = 0;
 			foreach($rows as $row){
 				if($row["id"] == $node_id){
-					$sql = "update nodes t1 inner join nodes t2 on (t1.id, t2.id) in (($lastId,$node_id),($node_id,$lastId)) set t1.element_id = t2.element_id, t1.inner_html = t2.inner_html";
+					$sql = "UPDATE nodes t1 " .
+						"INNER JOIN nodes t2 " .
+						"ON ( t1.id, t2.id ) IN (($lastId,$node_id),($node_id,$lastId)) " .
+						"SET    t1.element_id = t2.element_id," .
+						"t1.inner_html = t2.inner_html";
 					error_log($sql);
 					$row_count = $db->update_query($sql);
 					if($row_count>0){
 						echo "Affected_rows: $row_count";
-						$sql2 = "UPDATE nodes SET parent_node_id = (CASE WHEN parent_node_id = $node_id THEN $lastId WHEN parent_node_id = $lastId THEN $node_id END) WHERE parent_node_id IN($lastId, $node_id)";
+						$sql2 =
+						"UPDATE nodes " .
+						"SET parent_node_id = ( CASE " .
+						"parent_node_id = $node_id THEN $lastId " .
+						"WHEN parent_node_id = $lastId THEN $node_id " .
+						"END)" .
+						"WHERE  parent_node_id IN( $lastId, $node_id )";
 						error_log($sql2);
 						$stmt2 = $db->update_query($sql2);
 					}
@@ -367,7 +378,9 @@ if(isset($_GET["step_up"]) && isset($_GET["node_id"])){
 				$lastId = $row["id"];
 			}
 		}
-		else echo "Element is first";
+		else{
+			echo "Element is first";
+		}
 		exit;
 	}
 	else{

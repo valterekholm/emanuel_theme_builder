@@ -278,7 +278,7 @@ $html->p($html->cssClass($row["name"], $row["css"], false));
 ?>
 </div>
 <div id="element_css">
-<h3>Element css</h3>
+<h3>Element css, for this page</h3>
 <?php
 $sql4 = "select e.name, e.id, c.id as cid, c.css from element_css c left join html_element e on (c.name = e.id) WHERE web_page_id = $wep";
 $res4 = $db->select_query($sql4);
