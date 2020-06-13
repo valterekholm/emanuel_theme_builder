@@ -94,6 +94,14 @@ $BODY_ELEMENT = "body"; //TODO: make user defined
 
 <?php
 $db = new db();
+
+/* 
+test
+*/
+
+//$db->create_table("nyTabell", array("id"=>"INT NOT NULL AUTO_INCREMENT", "name"=>"varchar(80)","PRIMARY KEY"=>"(id)"));
+
+
 $html = new html();
 $sess = new sess();
 

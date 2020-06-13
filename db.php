@@ -11,8 +11,8 @@ class db {
         $this->user = "builder";
         $this->pass = "12345";
         $options = array(PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC);
-        $this->conn = new PDO('mysql:host=localhost;dbname=emanoel_theme_builder', $this->user, $this->pass, $options);
-
+		$this->conn = new PDO('mysql:host=localhost;dbname=emanoel_theme_builder', $this->user, $this->pass, $options);
+		$this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);//to get error-messages
     }
 
     function select_query($sql, $force_lower_case = true) {
@@ -70,7 +70,42 @@ class db {
         error_log("stmt: " . print_r($stmt, true));
         error_log("res: " . print_r($res, true));
         return $stmt->rowCount();
-    }
+	}
+	
+	function alter_db_query($sql, $values = array(), $force_lower_case = true){
+
+	}
+
+	/*$fields should be array with key/values like "name" => "attributes" (string => string)
+
+	examples: "name" => "varchar(100)"
+	"id" => "int not null"
+	"PRIMARY KEY" => "(id)"
+	
+	*/
+	function create_table($table_name, $fields = array()){
+
+		$sql = "CREATE TABLE $table_name ";
+
+		if(count($fields)>0){
+			$sql .= "(";
+
+			$output = implode(', ', array_map(
+				function ($v, $k) { return sprintf("%s  %s", $k, $v); },
+				$fields,
+				array_keys($fields)
+			));//from https://stackoverflow.com/questions/11427398
+
+
+			$sql .= $output;
+			$sql .= ")";
+		}
+		echo $sql;
+		$stmt = $this->conn->prepare($sql);
+        $stmt = $this->conn->query($sql);
+
+        return $stmt;
+	}
 
 
 function array_to_pdo_params($array) {
