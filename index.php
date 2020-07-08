@@ -4,27 +4,23 @@ require_once("html.php");
 require_once("sess.php");
 require_once("functions.php");
 
+$db = new db();
+$html = new html();
+$sess = new sess();
+
 error_reporting(E_ALL);
 
 $BODY_ELEMENT = "body"; //TODO: make user defined
 ?>
-
+<!doctype html>
 <html>
-    <head>
-	<link rel="stylesheet" href="../jquery-ui.css">
-	<!-- link rel="stylesheet" href="https://ajax.aspnetcdn.com/ajax/jquery.ui/1.12.1/themes/cupertino/jquery-ui.css" -->
-	<link rel="stylesheet" href="Treant.css">
-	<link rel="stylesheet" href="style.css">
-        <script src="../jquery-3.4.1.js"></script>
-	<!--script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.4.1.min.js"></script-->
-        <script src="../jquery-ui.js"></script>
-	<!--script src="https://ajax.aspnetcdn.com/ajax/jquery.ui/1.12.1/jquery-ui.js"></script-->
-        <script src="../vendor/raphael.js"></script>
-	<!--script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.3.0/raphael.js" integrity="sha256-lUVl8EMDN2PU0T2mPMN9jzyxkyOwFic2Y1HJfT5lq8I=" crossorigin="anonymous"></script-->
-        <script src="Treant.js"></script>
-	<!-- script src="https://cdnjs.cloudflare.com/ajax/libs/treant-js/1.0/Treant.js" integrity="sha256-znpgHNqR9Hjjydllxj3UCvOia54DxgQcIoacHEXUSLo=" crossorigin="anonymous"></script-->
-        <script src="theme_builder.js"></script>
-        <script src="dialogesBoxes.js"></script>
+    <!--head-->
+    <?=$html->headOpen("Emanoel Theme Builder",
+    array("description" => "html DOM builder"),
+    array("../jquery-ui.css", "Treant.css", "style.css"),
+    array("../jquery-3.4.1.js", "../jquery-ui.js","../vendor/raphael.js","Treant.js","theme_builder.js","dialogesBoxes.js")
+);?>
+
         <script>
       //using jquery ui
 
@@ -69,8 +65,6 @@ $BODY_ELEMENT = "body"; //TODO: make user defined
                             location.reload();
                         });
 
-
-
                         $(this)
                                 .addClass("ui-state-highlight");
                     }
@@ -93,17 +87,12 @@ $BODY_ELEMENT = "body"; //TODO: make user defined
     <body>
 
 <?php
-$db = new db();
 
 /* 
 test
 */
 
 //$db->create_table("nyTabell", array("id"=>"INT NOT NULL AUTO_INCREMENT", "name"=>"varchar(80)","PRIMARY KEY"=>"(id)"));
-
-
-$html = new html();
-$sess = new sess();
 
 $wep = $sess->getChoosenWebpage();
 
@@ -112,8 +101,6 @@ printMenu();
 echo "theme builder (webpage $wep)";
 
 echo "<div style='position:fixed; top:0; right:0; width:40px; height:40px; background:green;font-size:40px' onClick='showGuide()'><a href='#'>?</a></div>";
-
-
 
 $sql_wp = "SELECT * FROM web_page";
 $res = $db->select_query($sql_wp);
@@ -193,7 +180,10 @@ else{
 <?php
 //COALESCE(n.parent_node_id, \"null\")
 //Get all nodes
-$sql = "select n.id, parent_node_id, e.name, e.is_empty_tag, n.element_id, inner_html from nodes n left join html_element e on (n.element_id = e.id) WHERE web_page_id = $wep";
+//$sql = "select n.id, parent_node_id, e.name, e.is_empty_tag, n.element_id, inner_html from nodes n left join html_element e on (n.element_id = e.id) WHERE web_page_id = $wep";
+$sql = "select n.id, e.name, e.is_empty_tag, n.parent_node_id, n.element_id, inner_html, group_concat(c.name) as 'classes' from nodes n join html_element e on (element_id = e.id) left join nodes_classes nc on (id_node = n.id) left join classes c on (id_class = c.id) group by(n.id)";
+
+
 $res = $db->select_query($sql);
 $rows_nodes = $res->fetchAll();
 
@@ -202,17 +192,22 @@ if((empty($rows_nodes) || count($rows_nodes) == 0) && $found_body_e){
 }
 
 //select * from html_element e join nodes n on (element_id = e.id);
+
+//with classes
+
 ?>
 
 <div id="leftside">
 <?php
 $found_topnode = false;
 $html->p("Nodes:");
-echo "<table>";
-$html->tr("<th>id</th><th>name</th><th>parent</th>");
+echo "<table id='allNodes'>";
+$html->tr("<th>id</th><th>name</th><th>parent</th><th></th><th></th>");
 foreach ($rows_nodes as $row) {
     //echo "r";
-    $html->tr("<td>" . $row["id"] . "</td><td>" . $row["name"] . "</td><td>" . $row["parent_node_id"] . "</td>");
+    $html->tr("<td>" . $row["id"] . "</td><td>" . $row["name"] . "</td><td>" . $row["parent_node_id"] .
+    "</td><td>".$row["classes"]."</td><td><a href='#' onClick='classMenu(this.parentNode.parentNode.id)'>class</a></td>",
+array("id"=>"node_" . $row["id"]));
     if($row["parent_node_id"] == null){
 	$found_topnode = $row;
 	if($row["element_id"] == $found_body_e["id"]){
@@ -240,12 +235,6 @@ if(!$found_topnode){
 
         <div class="chart" id="OrganiseChart-simple2">
         </div>
-
-
-
-        <a href="render.php">render</a>
-	<a href="choose_webpage.php">choose webpage</a>
-
 
         <div id="u-node-dialog-form">
 
@@ -281,7 +270,9 @@ $sql3 = "select * from classes";//todo: use web_page_id
 $res3 = $db->select_query($sql3);
 $rows3 = $res3->fetchAll();
 foreach($rows3 as $row){
-$html->p($html->cssClass($row["name"], $row["css"], false));
+    echo "<div>";
+    $html->p($html->cssClass($row["name"], $row["css"], false));
+    echo "<input type='button' value='add' onClick='addClass(".$row["id"].")'></div>";
 }
 ?>
 </div>
@@ -448,7 +439,7 @@ echo "var arr = " . json_encode($nodes, JSON_UNESCAPED_SLASHES) . ";\n";
                 stepUp.className = "stepUpBtn";
                 stepUp.innerHTML = "<";
                 stepUp.href = "#";
-                stepUp.title = "Step up";
+                stepUp.title = "move";
 
                 stepUp.addEventListener("click", function (ev) {
                     ev.preventDefault();

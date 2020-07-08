@@ -98,7 +98,42 @@ class html {
 	if($echo)
 	echo ".$name{ $css }";
 	else return ".$name{ $css }";
-    } 
+	} 
+	
+	/**
+	 * metas key/value like "charset"=>"utf-8" or "description"=>"a webpage"
+	 * csses simple array of strings (files)
+	 * jscripts simple array of strings (files)
+	*/
+	function headOpen($title, $metas = array(), $csses = array(), $jscripts = array()){
+		$ret = "<head>";
+		$ret .= "<title>$title</title>";
+
+		foreach($metas as $key => $value){
+			if($key=="charset"){
+				$ret .= "<meta charset='$value'>";
+			} else {
+				$ret .= "<meta name='$key' content='$value'>";
+			}
+		}//todo: make function for newlines and good indentations
+
+		foreach($csses as $url){
+			$ret .= "<link rel='stylesheet' href='$url'>";
+		}
+
+		foreach($jscripts as $script){
+			$ret .= "<script src='$script'></script>";			
+		}
+
+		return $ret;
+
+	}
+
+	function isAssoc(array $arr)//from https://stackoverflow.com/questions/173400
+	{
+		if (array() === $arr) return false;
+		return array_keys($arr) !== range(0, count($arr) - 1);
+	}
 
 }
 

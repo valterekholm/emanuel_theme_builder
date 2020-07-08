@@ -1,3 +1,5 @@
+var choosenNode = null;
+
 function getAjax(url, success) {
 	console.log("getAjax med " + url + " och " + success);
 	var xhr = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject('Microsoft.XMLHTTP');
@@ -70,4 +72,56 @@ window.onresize = function(){
 	setTimeout(function(){
 		if(confirm("Window resized, please reload page")){ location.reload(); }
 	},200);
+}
+
+window.addEventListener("load", function(){
+	var nodesTable = document.querySelector("#allNodes");
+	var rows = nodesTable.getElementsByTagName("tr");
+	var len = rows.length;
+
+	for(var i=0; i<len; i++){
+		var r = rows[i];
+
+		r.addEventListener("mouseenter", function(){
+			var iH = this.firstElementChild.innerHTML;
+			//console.log(iH);
+			highlightNodeById("n_" + iH);
+			this.className = "higlight";
+		});
+		r.addEventListener("mouseleave", function(){
+			var iH = this.firstElementChild.innerHTML;
+			this.className = "";
+			highlightOffById("n_" + iH);
+		})
+	}
+});
+
+function highlightNodeById(id){
+	console.log("higlight " + id);
+	document.getElementById(id).classList.add("highlight");
+	setTimeout(function(){
+		var id_ = id;
+		//console.log(id_);
+		//document.getElementById(id_).classList.remove("highlight");
+	}, 1000);
+}
+
+function highlightOffById(id){
+	document.getElementById(id).classList.remove("highlight");
+}
+
+function classMenu(id){
+	document.querySelector("#classes").classList.add("menu");
+	choosenNode = getAfter_(id);
+	console.log(choosenNode);
+}
+
+
+function addClass(classId){
+	console.log("addClass with id " + classId + " to node " + choosenNode);
+	var queryArgs = "add_class_to_node=yes&node_id=" + choosenNode + "&class_id=" + classId;
+	getAjax("ajax_operations.php?"+queryArgs, function (resp) {
+		alert(resp);
+		location.reload();
+	});
 }

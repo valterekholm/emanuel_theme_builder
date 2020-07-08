@@ -12,18 +12,10 @@ $sess = new sess();
 ?>
 <!DOCTYPE html>
 <html>
-<head>
-<meta charset="utf-8">
-        <link rel="stylesheet" href="https://ajax.aspnetcdn.com/ajax/jquery.ui/1.12.1/themes/cupertino/jquery-ui.css">
-        <link rel="stylesheet" href="Treant.css">
-        <link rel="stylesheet" href="style.css">
-        <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.4.1.min.js"></script>
-        <script src="https://ajax.aspnetcdn.com/ajax/jquery.ui/1.12.1/jquery-ui.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.3.0/raphael.js" integrity="sha256-lUVl8EMDN2PU0T2mPMN9jzyxkyOwFic2Y1HJfT5lq8I=" crossorigin="anonymous"></script>
-        <script src="Treant.js"></script>
-        <script src="theme_builder.js"></script>
-        <script src="dialogesBoxes.js"></script>
-
+<?=$html->headOpen("choose webpage", array("charset"=>"utf-8"),
+array("https://ajax.aspnetcdn.com/ajax/jquery.ui/1.12.1/themes/cupertino/jquery-ui.css","Treant.css","style.css"),
+array("../jquery-3.4.1.js", "../jquery-ui.js", "../vendor/raphael.js","Treant.js","theme_builder.js","dialogesBoxes.js")
+);?>
 </head>
 <body>
 

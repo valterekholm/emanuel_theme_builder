@@ -49,7 +49,7 @@ echo "</$base_name>";
 }
 }
 
-function printMenu($menu = array("Start" => "index.php", "Render" => "render.php", "Choose webpage" => "choose_webpage.php")){
+function printMenu($menu = array("Start" => "index.php", "Render" => "render.php", "Choose webpage" => "choose_webpage.php", "SQL"=>"sql.php")){
 
 $html = new html();
 

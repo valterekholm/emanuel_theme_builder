@@ -1,5 +1,9 @@
 <?php
 
+if(isset($_GET) || isset($_POST)){
+	require_once("db.php");
+}
+
 //add node
 if(isset($_GET["add_node"]) && isset($_GET["parent_node_id"]) && isset($_GET["child_element_id"])){
 
@@ -325,13 +329,15 @@ if(isset($_GET["step_up"]) && isset($_GET["node_id"])){
 
 	require_once("db.php");
 
-        $node_id = $_GET["node_id"];
+	$db = new db();
+
+	$node_id = $_GET["node_id"];
 
 	if(!is_numeric($node_id)){
 		echo "Non numeric id";
 		exit;
 	}
-	$db = new db();
+	
 
 	//get parent node
 	$sql = "SELECT parent_node_id FROM nodes WHERE id = $node_id";
@@ -395,6 +401,38 @@ if(isset($_GET["clear_choosen_webpage"])){
 	$sess = new sess();
 	$sess->clearChoosenWebpage();
 	echo "Choosen webpage: " . $sess->getChoosenWebpage();
+}
+
+if(isset($_GET["add_class_to_node"])){
+	if(isset($_GET["node_id"]) && isset($_GET["class_id"])){
+		$node_id = intval($_GET["node_id"]);
+		$class_id = intval($_GET["class_id"]);
+	}
+	else{
+		exit;
+	}
+
+	$sql = "INSERT INTO nodes_classes (id_node, id_class) VALUES (?,?)";
+	$values = array($node_id, $class_id);
+	$db = new db();
+
+	try{
+		$row_count = $db->insert_query($sql, $values, false);
+	}
+	catch(Exception $e){//only if place is taken
+		echo "The class is allready used";
+		exit;
+	}
+
+	error_log("row_count: $row_count");
+
+        if($row_count > 0){
+                echo "got 3 args ok from AJAX, row_count: $row_count";
+        }
+        else{
+                http_response_code(500);//Internal Server Error
+                echo "Query failed"; //text wont reach to front-end
+        }
 }
 
 /*
