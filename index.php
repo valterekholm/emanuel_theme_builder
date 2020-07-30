@@ -18,7 +18,7 @@ $BODY_ELEMENT = "body"; //TODO: make user defined
     <?=$html->headOpen("Emanoel Theme Builder",
     array("description" => "html DOM builder"),
     array("jquery-ui.css", "Treant.css", "style.css"),
-    array("jquery-3.4.1.js", "jquery-ui.js","vendor/raphael.js","Treant.js","theme_builder.js","dialogesBoxes.js")
+    array("jquery-3.4.1.js", "jquery-ui.js","raphael.js","Treant.js","theme_builder.js","dialogesBoxes.js")
 );?>
 
         <script>
