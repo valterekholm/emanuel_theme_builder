@@ -25,7 +25,7 @@ if(isset($_POST["fieldname[]"]) && isset($_POST["attributes[]"])){
 <html>
 <?=$html->headOpen("Query database", array("charset"=>"utf-8"),
 array("https://ajax.aspnetcdn.com/ajax/jquery.ui/1.12.1/themes/cupertino/jquery-ui.css","Treant.css","style.css"),
-array("../jquery-3.4.1.js", "../jquery-ui.js", "../vendor/raphael.js","Treant.js","theme_builder.js","dialogesBoxes.js")
+array("jquery-3.4.1.js", "jquery-ui.js", "raphael.js","Treant.js","theme_builder.js","dialogesBoxes.js")
 );?>
 </head>
 <body>

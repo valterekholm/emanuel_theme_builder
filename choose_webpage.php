@@ -8,13 +8,13 @@ require_once("functions.php");
 $db = new db();
 $html = new html();
 $sess = new sess();
-
+//todo: flytta in js-filer från vendor-mappen till samma mapp som index
 ?>
 <!DOCTYPE html>
 <html>
 <?=$html->headOpen("choose webpage", array("charset"=>"utf-8"),
 array("https://ajax.aspnetcdn.com/ajax/jquery.ui/1.12.1/themes/cupertino/jquery-ui.css","Treant.css","style.css"),
-array("../jquery-3.4.1.js", "../jquery-ui.js", "../vendor/raphael.js","Treant.js","theme_builder.js","dialogesBoxes.js")
+array("jquery-3.4.1.js", "jquery-ui.js", "raphael.js","Treant.js","theme_builder.js","dialogesBoxes.js")
 );?>
 </head>
 <body>
