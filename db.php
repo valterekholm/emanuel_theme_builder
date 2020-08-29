@@ -11,8 +11,12 @@ class db {
         $this->user = "builder";
         $this->pass = "12345";
         $options = array(PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC);
-		$this->conn = new PDO('mysql:host=localhost;dbname=emanoel_theme_builder', $this->user, $this->pass, $options);
-		$this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);//to get error-messages
+	$this->conn = new PDO('mysql:host=localhost;dbname=emanoel_theme_builder', $this->user, $this->pass, $options);
+	$this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);//to get error-messages
+    }
+    
+    function clear(){
+        $this->conn = null;
     }
 
     function select_query($sql, $force_lower_case = true) {

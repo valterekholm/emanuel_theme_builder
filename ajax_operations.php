@@ -162,6 +162,52 @@ if(isset($_GET["update_node"]) && isset($_GET["node_id"]) && isset($_GET["elemen
         }
 }
 
+//get node /class info
+if(isset($_GET["node_status"]) && isset($_GET["id"])){
+    error_log("node_status");
+    require_once("db.php");
+    require_once("sess.php");
+    
+    $sess = new sess();
+    $db = new db();
+    
+    $wep = $sess->getChoosenWebpage();
+    
+    
+    $node_id = $_GET["id"];
+    
+    $sql = "select n.id, n.element_id, parent_node_id, inner_html, web_page_id, COALESCE(GROUP_CONCAT(name),'') as classes ".
+            "from nodes n left join nodes_classes ON (n.id = id_node) left join classes c ON (id_class = c.id) ".
+            "WHERE web_page_id = $wep AND n.id = $node_id ".
+            "GROUP BY id";
+    
+    $res = $db->select_query($sql);
+    $row = $res->fetch();
+    
+    //make array of classes?
+    $classes = $row["classes"];
+    
+    if($classes == ""){
+        $row["classes"] = null;
+        error_log("classes empty");
+    }
+    else{
+        error_log("classes not empty : [$classes]");
+        if(strstr($classes, ",")){
+            $aclasses = explode(",", $classes);
+        }
+        else{
+            $aclasses = array($classes);
+        }
+    
+        $row["classes"] = $aclasses;
+    }
+    
+    
+    echo json_encode($row);
+    
+}
+
 if(isset($_POST["update_node"]) && isset($_POST["node_id"]) && isset($_POST["element_id"]) && isset($_POST["inner_html"]) && isset($_POST["parent_id"])){
 	error_log("update_node POST");
 
@@ -434,6 +480,60 @@ if(isset($_GET["add_class_to_node"])){
                 echo "Query failed"; //text wont reach to front-end
         }
 }
+
+//remove_class_from_node=yes&node_id=4class_name=center-text
+if(isset($_POST["remove_class_from_node"])){
+	if(isset($_POST["node_id"]) && isset($_POST["class_name"])){
+		$node_id = intval($_POST["node_id"]);
+		$class_name = $_POST["class_name"];//assuming class names are unique (togheter with wep) in db
+	}
+	else{
+		exit;
+	}
+        error_log("got post args: " . print_r($_POST, true));//filter_input(INPUT_POST)
+        
+        require_once("db.php");
+        require_once("sess.php");
+    
+        $sess = new sess();
+        $db = new db();
+    
+        $wep = $sess->getChoosenWebpage();
+        
+        //get class id
+        
+        $sql = "SELECT * FROM classes WHERE name = '$class_name' AND webpage_id = $wep";
+        error_log($sql);
+        $res = $db->select_query($sql);
+        $row = $res->fetch();
+        
+        if(empty($row)){
+            http_response_code(500);//Internal Server Error
+            echo "Query failed";
+        }
+        
+        $classId = $row["id"];
+        
+        error_log("Will delete where id_class = $classId and id_node = $node_id");
+        
+	$sql2 = "DELETE FROM nodes_classes WHERE id_class = ? AND id_node = ?";//removing connection
+        error_log($sql2);
+	$values = array($classId, $node_id);
+        error_log("values: " . print_r($values, true));
+        $row_count = $db->update_query($sql2, $values);
+        
+	error_log("row_count: $row_count");
+
+        if($row_count > 0){
+                echo "got 3 args ok from AJAX, row_count: $row_count";
+        }
+        else{
+                http_response_code(500);//Internal Server Error
+                echo "Query failed"; //text wont reach to front-end
+        }
+}
+
+
 
 /*
 if(isset($_GET["add_node"]) && isset($_GET["parent_node_id"]) && isset($_GET["child_element_id"])){

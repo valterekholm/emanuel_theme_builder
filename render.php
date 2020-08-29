@@ -19,19 +19,28 @@ $wep = $sess->getChoosenWebpage();
 <head>
 <?php
 
-$sql = "select c.*, e.name element_name from element_css c left join html_element e on (c.name = e.id)";
-$res = $db->select_query($sql);
-$rows = $res->fetchAll();
-if(count($rows)>0){
-echo "<style>";
-foreach($rows as $row){
+error_log("RENDER");
 
+$sql_elem_css = "select c.*, e.name element_name from element_css c left join html_element e on (c.name = e.id) where web_page_id = $wep";
+error_log($sql_elem_css);
+$res_elem_css = $db->select_query($sql_elem_css);
+$rows_elem_css = $res_elem_css->fetchAll();
 
-echo $row["element_name"] . "{ " . $row["css"] . " }";
-//TODO: connect to web_page_id
+$sql_classes = "select * from classes WHERE webpage_id = $wep";
+error_log($sql_classes);
+$res_classes = $db->select_query($sql_classes);
+$rows_classes = $res_classes->fetchAll();
 
-}
-echo "</style>";
+//RENDERING STYLE SECTION
+if(count($rows_elem_css)>0 || count($rows_classes)>0){
+    echo "<style>";
+    foreach($rows_elem_css as $row){
+        echo "." . $row["element_name"] . "{ " . $row["css"] . " }\n";
+    }
+    foreach($rows_classes as $row2){
+        echo "." . $row2["name"] . "{ " . $row2["css"] . " }\n";
+    }
+    echo "</style>";
 }//if
 
 ?>

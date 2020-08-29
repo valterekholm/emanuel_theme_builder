@@ -206,7 +206,7 @@ $html->tr("<th>id</th><th>name</th><th>parent</th><th></th><th></th>");
 foreach ($rows_nodes as $row) {
     //echo "r";
     $html->tr("<td>" . $row["id"] . "</td><td>" . $row["name"] . "</td><td>" . $row["parent_node_id"] .
-    "</td><td>".$row["classes"]."</td><td><a href='#' onClick='classMenu(this.parentNode.parentNode.id)'>class</a></td>",
+    "</td><td>".$row["classes"]."</td><td><a href='#' onClick='classMenu(this.parentNode.parentNode.id); nodeStatus(this)'>class</a></td>",
 array("id"=>"node_" . $row["id"]));
     if($row["parent_node_id"] == null){
 	$found_topnode = $row;
@@ -266,11 +266,11 @@ if(!$found_topnode){
 <div id="classes">
 <h3>Classes</h3>
 <?php
-$sql3 = "select * from classes";//todo: use web_page_id
+$sql3 = "select * from classes where webpage_id = $wep";//todo: use web_page_id
 $res3 = $db->select_query($sql3);
 $rows3 = $res3->fetchAll();
-foreach($rows3 as $row){
-    echo "<div>";
+foreach($rows3 as $row){ //classes
+    echo "<div id='class_".$row["name"]."'>";
     $html->p($html->cssClass($row["name"], $row["css"], false));
     echo "<input type='button' value='add' onClick='addClass(".$row["id"].")'></div>";
 }
@@ -282,7 +282,7 @@ foreach($rows3 as $row){
 $sql4 = "select e.name, e.id, c.id as cid, c.css from element_css c left join html_element e on (c.name = e.id) WHERE web_page_id = $wep";
 $res4 = $db->select_query($sql4);
 $rows4 = $res4->fetchAll();
-foreach($rows4 as $row){
+foreach($rows4 as $row){ //element-css
 	$html->p($row["name"]."{ ".$row["css"]." } <a href='#' class='editElemCss'>edit</a> <a href='#' onClick='deleteElementCss(".$row["cid"].")'>delete</a>",
 	array("id"=>"ec_".$row["id"], "data-element"=>$row["name"], "data-css"=>$row["css"], "data-wep"=>$wep));
 }
@@ -294,7 +294,7 @@ foreach($rows4 as $row){
 <input type="hidden" id="css_e_wep" value="<?=$wep?>">
 <select name='html_element' id="css_e">
 <?php
-foreach($rows as $r){
+foreach($rows as $r){ //html-elements
 ?>
 	<option value='<?=$r["id"]?>'><?=$r["name"]?></option>
 <?php
@@ -518,6 +518,56 @@ echo "var arr = " . json_encode($nodes, JSON_UNESCAPED_SLASHES) . ";\n";
 			location.reload();
 		});
 	}
+        
+        function nodeStatus(elem){
+            var id = getAfter_(elem.parentNode.parentNode.id);
+            var queryArgs = "node_status=yes&id=" + id;
+            console.log(queryArgs);
+            getAjax("ajax_operations.php?"+queryArgs, function (resp) {
+			console.log(resp);
+                        var nod = JSON.parse(resp);
+                        console.log(nod);
+                        enableClassDisconn(nod.id, nod.classes);
+			//location.reload();
+		});
+        }
+        
+        //to edit a node
+        //enable to remove class from node
+        //for any class that is related to a node
+        //classNames - array of names, or null
+        function enableClassDisconn(nodeId, classNames){
+            if(null == classNames){
+                return
+            }
+            console.log("enableClassDisconn " + nodeId + " " + classNames);
+            var len = classNames.length;
+            //alert("found " + len + " classes");
+            var prefix = "class_";
+            classNames.forEach((elem, index, array) => {
+                var fullId = prefix + elem;
+                var classDiv = document.querySelector("#"+fullId);
+                console.log(classDiv);
+                classDiv.appendChild(makeButton("remove", function(){
+                    //alert("remove...");
+                    alert(nodeId + " " + elem);
+                    var queryArgs = "remove_class_from_node=yes&node_id="+nodeId+"&class_name="+elem;
+                    console.log(queryArgs);
+                    postAjax("ajax_operations.php", queryArgs, function (resp) {
+                        //alert(resp);
+                        location.reload();
+                    });
+                })
+                        );
+            });
+        }
+        
+        function makeButton(text, callb){
+            var btn = document.createElement("button");
+            btn.innerHTML = text;
+            btn.onclick = callb;
+            return btn;
+        }
         </script>
 
     </body>
