@@ -114,25 +114,25 @@ if(empty($rows_wp) || empty($sess->getChoosenWebpage())){
 
 
 //insert into html_element (id, name, is_empty_tag) values (1, 'table', 0);
-$sql = "select * from html_element";
+$sql_html = "select * from html_element";
 
-$res = $db->select_query($sql);
-error_log(print_r($res, true));
-$rows = $res->fetchAll();
+$res_html = $db->select_query($sql_html);
+error_log(print_r($res_html, true));
+$rows_html = $res_html->fetchAll();
 
 $found_body_e = false;//e element
 
-if(count($rows) == 0){
-	$html->p("Du måste generera ett body-element ($BODY_ELEMENT)... <a href=\"generate_body_element.php\">OK</a>");
+if(count($rows_html) == 0){
+	$html->p("Inga HTML-element sparade! Du måste generera ett body-element ($BODY_ELEMENT)... <a href=\"generate_body_element.php\">OK</a>");
 }
 else{
-	foreach ($rows as $row) {
+	foreach ($rows_html as $row) {
 		if($row["name"] == $BODY_ELEMENT){
 			$found_body_e = $row;
 		}
 	}
 	if(!$found_body_e){
-		$html->p("Du måste generera ett body-element ($BODY_ELEMENT)... <a href=\"generate_body_element.php\">OK</a>");
+		$html->p("Hittade inte rot-element! Du måste generera ett body-element ($BODY_ELEMENT)... <a href=\"generate_body_element.php\">OK</a>");
 	}
 }
 
@@ -143,7 +143,7 @@ else{
 	<div id="palette_inner">
         <?php
         $html->h3("Element types:");
-        foreach ($rows as $row) {
+        foreach ($rows_html as $row) {
 	    if($row["name"] == $BODY_ELEMENT){
 		$html->span("(id: " . $row["id"] . ", " . $row["name"] . ")");//this one should allready be out there, so don't add it again
 	    }
@@ -174,6 +174,16 @@ else{
 			<!--input type="button" onClick="updateElementCss()" value="update"-->
 		</fieldset>
 	    </form>
+            
+            <form id="alter_class_css">
+		<fieldset class="form">
+			<legend>Edit class css</legend>
+			<input type="hidden" id="cl_css_web_page_id" value="<?=$wep?>">
+			<input type="text" id="cl_name" name="cl_name" placeholder="name">
+			<textarea id="cl_css" name="cl_css" placeholder="css"></textarea>
+			<!--input type="button" onClick="updateElementCss()" value="update"-->
+		</fieldset>
+	    </form>
 
 	</div>
 
@@ -181,14 +191,14 @@ else{
 //COALESCE(n.parent_node_id, \"null\")
 //Get all nodes
 //$sql = "select n.id, parent_node_id, e.name, e.is_empty_tag, n.element_id, inner_html from nodes n left join html_element e on (n.element_id = e.id) WHERE web_page_id = $wep";
-$sql = "select n.id, e.name, e.is_empty_tag, n.parent_node_id, n.element_id, inner_html, group_concat(c.name) as 'classes' from nodes n join html_element e on (element_id = e.id) left join nodes_classes nc on (id_node = n.id) left join classes c on (id_class = c.id) group by(n.id)";
+$sql = "select n.id, e.name, e.is_empty_tag, n.parent_node_id, n.element_id, inner_html, group_concat(c.name) as 'classes' from nodes n join html_element e on (element_id = e.id) left join nodes_classes nc on (id_node = n.id) left join classes c on (id_class = c.id) where n.web_page_id=$wep group by(n.id)";
 
 
 $res = $db->select_query($sql);
 $rows_nodes = $res->fetchAll();
 
 if((empty($rows_nodes) || count($rows_nodes) == 0) && $found_body_e){
-		$html->p("Du måste generera en body-node (motsvarande $BODY_ELEMENT)... <a href=\"generate_body_node.php\">OK</a>");
+		$html->p("Sidan $wep är ju tom! Du måste generera en body-node (motsvarande $BODY_ELEMENT)... <a href=\"generate_body_node.php\">OK</a>");
 }
 
 //select * from html_element e join nodes n on (element_id = e.id);
@@ -202,11 +212,11 @@ if((empty($rows_nodes) || count($rows_nodes) == 0) && $found_body_e){
 $found_topnode = false;
 $html->p("Nodes:");
 echo "<table id='allNodes'>";
-$html->tr("<th>id</th><th>name</th><th>parent</th><th></th><th></th>");
+$html->tr("<th>id</th><th>name</th><th>parent</th><th>classes</th><th>edit class</th>");
 foreach ($rows_nodes as $row) {
     //echo "r";
     $html->tr("<td>" . $row["id"] . "</td><td>" . $row["name"] . "</td><td>" . $row["parent_node_id"] .
-    "</td><td>".$row["classes"]."</td><td><a href='#' onClick='classMenu(this.parentNode.parentNode.id); nodeStatus(this)'>class</a></td>",
+    "</td><td>".$row["classes"]."</td><td><a onClick='classMenu(this.parentNode.parentNode.id); nodeStatus(this)'>class</a></td>",
 array("id"=>"node_" . $row["id"]));
     if($row["parent_node_id"] == null){
 	$found_topnode = $row;
@@ -271,8 +281,15 @@ $res3 = $db->select_query($sql3);
 $rows3 = $res3->fetchAll();
 foreach($rows3 as $row){ //classes
     echo "<div id='class_".$row["name"]."'>";
-    $html->p($html->cssClass($row["name"], $row["css"], false));
-    echo "<input type='button' value='add' onClick='addClass(".$row["id"].")'></div>";
+    //$html->p($html->cssClass($row["name"], $row["css"], false));
+    $html->p($row["name"]."{ ".$row["css"]." } <a href='#' class='editClassCss'>edit</a> <a href='#' onClick='deleteClass(".$row["id"].")'>delete</a>",
+    array("id"=>"pc_".$row["id"], "data-name"=>$row["name"], "data-css"=>$row["css"], "data-wep"=>$wep));
+    //echo "<a onClick='deleteClass(".$row["id"].")'>delete</a>";
+    echo "<input type='button' value='try add' onClick='addClassToNode(".$row["id"].")' title='add class to element'>";
+    echo "</div>";
+}
+if(empty($rows3)){
+    echo "No classes for webpage";
 }
 ?>
 </div>
@@ -294,7 +311,7 @@ foreach($rows4 as $row){ //element-css
 <input type="hidden" id="css_e_wep" value="<?=$wep?>">
 <select name='html_element' id="css_e">
 <?php
-foreach($rows as $r){ //html-elements
+foreach($rows_html as $r){ //html-elements
 ?>
 	<option value='<?=$r["id"]?>'><?=$r["name"]?></option>
 <?php
@@ -304,6 +321,16 @@ foreach($rows as $r){ //html-elements
 <textarea name='css' id="css_e_css" placeholder="margin: 10px;">
 </textarea>
 <input type="button" value="add" onClick="addElementCss()">
+</form>
+</fieldset>
+<fieldset class="form">
+<legend>Add class</legend>
+<form action="ajax_operations.php">
+<input type="hidden" id="class_wep" value="<?=$wep?>">
+<input type="text" id="class_name" placeholder="myclass">
+<textarea name='css' id="class_css" placeholder="margin: 10px;">
+</textarea>
+<input type="button" value="add" onClick="addClass()"><!-- add to current webpage -->
 </form>
 </fieldset>
 </div>
@@ -557,15 +584,45 @@ echo "var arr = " . json_encode($nodes, JSON_UNESCAPED_SLASHES) . ";\n";
                         //alert(resp);
                         location.reload();
                     });
-                })
+                }, "remove from node " + nodeId)
                         );
             });
         }
         
-        function makeButton(text, callb){
+        //add a css class with css-rules i.e. ".bigtext{ font-size: 35px; }"
+        function addClass(){
+		var name = document.querySelector("#class_name").value;
+		var css = document.querySelector("#class_css").value;
+		var wep = document.querySelector("#class_wep").value;
+		var queryArgs = "add_class=yes&name=" + name + "&css=" + css + "&wep=" + wep;
+                console.log("add class queryArgs: " + queryArgs);
+		postAjax("ajax_operations.php", queryArgs, function (resp) {
+			alert(resp);
+			location.reload();
+		});
+	}
+        
+        function deleteClass(id){
+		var queryArgs = "delete_class=yes&id=" + id;
+                console.log("delete class queryArgs: " + queryArgs);
+		getAjax("ajax_operations.php?"+queryArgs, function (resp) {
+			alert(resp);
+			location.reload();
+		});
+	}
+        
+        function makeButton(text, callb, title){
             var btn = document.createElement("button");
             btn.innerHTML = text;
             btn.onclick = callb;
+            
+            if(typeof title === "undefined"){
+                console.log("title is undef");
+            }
+            else{
+                console.log("title found");
+                btn.title = title;
+            }
             return btn;
         }
         </script>

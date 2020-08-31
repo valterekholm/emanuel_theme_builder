@@ -35,7 +35,7 @@ $rows_classes = $res_classes->fetchAll();
 if(count($rows_elem_css)>0 || count($rows_classes)>0){
     echo "<style>";
     foreach($rows_elem_css as $row){
-        echo "." . $row["element_name"] . "{ " . $row["css"] . " }\n";
+        echo $row["element_name"] . "{ " . $row["css"] . " }\n";
     }
     foreach($rows_classes as $row2){
         echo "." . $row2["name"] . "{ " . $row2["css"] . " }\n";

@@ -113,12 +113,12 @@ function highlightOffById(id){
 function classMenu(id){
 	document.querySelector("#classes").classList.add("menu");
 	choosenNode = getAfter_(id);
-	console.log(choosenNode);
+	console.log("choosen node: " + choosenNode);
 }
 
 
-function addClass(classId){
-	console.log("addClass with id " + classId + " to node " + choosenNode);
+function addClassToNode(classId){
+	console.log("addClassToNode with id " + classId + " to node " + choosenNode);
 	var queryArgs = "add_class_to_node=yes&node_id=" + choosenNode + "&class_id=" + classId;
 	getAjax("ajax_operations.php?"+queryArgs, function (resp) {
 		alert(resp);

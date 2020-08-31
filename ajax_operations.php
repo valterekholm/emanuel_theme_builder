@@ -263,6 +263,35 @@ if(isset($_POST["update_element_css"]) && isset($_POST["e_name"]) && isset($_POS
         }
 }
 
+if(isset($_POST["update_class_css"]) && isset($_POST["name"]) && isset($_POST["wep"]) && isset($_POST["css"])){
+	error_log("update_class_css POST");
+
+	require_once("db.php");
+
+	$name = $_POST["name"];
+	$wep = $_POST["wep"];
+	$css = $_POST["css"];
+
+	error_log(print_r($_POST, true));
+	//update via join match
+	//UPDATE element_css c INNER JOIN html_element e ON c.name = e.id SET css = '' WHERE e.name = 'h1' AND web_page_id = 5;
+	$sql = "UPDATE classes SET css = ? WHERE name = ? AND webpage_id = ?";
+	$values = array($css, $name, $wep);
+	$db = new db();
+
+	$row_count = $db->update_query($sql, $values, false);
+
+	error_log("row_count: $row_count");
+
+        if($row_count > 0){
+                echo "got 4 args ok from AJAX, row_count: $row_count";
+        }
+        else{
+                http_response_code(500);//Internal Server Error
+                echo "Query failed";
+        }
+}
+
 if(isset($_POST["add_element_css"]) && isset($_POST["element"]) && isset($_POST["wep"]) && isset($_POST["css"])){
 	error_log("add_element_css POST");
 
@@ -317,51 +346,47 @@ if(isset($_GET["delete_e_css"]) && isset($_GET["e_css_id"])){
 
 }
 
-
-if(isset($_GET["delete"]) && isset($_GET["node_id"]) && isset($_GET["move_children"])){
-        error_log("delete_node-------------------------------------");
-
+if(isset($_GET["delete_e_css"]) && isset($_GET["e_css_id"])){
+        error_log("delete_element_css----------");
         require_once("db.php");
-	$db = new db();
-
-        $node_id = $_GET["node_id"];
-        $move_children = $_GET["move_children"];
-
-        //error_log(print_r($_GET, true));
-
-	if($move_children == "yes"){
-
-		//find granparent
-		$sql = "SELECT parent_node_id grandparent_id FROM nodes WHERE id = $node_id";
-		$stmt = $db->select_query($sql);
-		$row = $stmt->fetch();
-		if(empty($row)){ echo "error with query"; exit; }
-		$gp = $row["grandparent_id"];
-
-		error_log("Found grandparent: $gp");
-
-
-		$sql = "UPDATE nodes SET parent_node_id = ? WHERE parent_node_id = ?";
-		$rowCount = $db->update_query($sql, array($gp, $node_id));
-		error_log("Moved up children count: $rowCount, from query $sql");
-	}
-
-        $sql = "DELETE FROM nodes WHERE id = ?";
-        $values = array($node_id);
+        $db = new db();
+	$e_css_id = $_GET["e_css_id"];
+	$sql = "DELETE FROM element_css WHERE id = ?";
+	$values = array($e_css_id);
 
         $row_count = $db->update_query($sql, $values);
 
-	if($move_children != "yes"){
-		error_log("Delete stray children");
-		//delete children
-			//DELETE n1 FROM nodes n1 LEFT JOIN nodes n2 on (n1.parent_node_id = n2.id) WHERE n1.parent_node_id IS NOT NULL AND n2.id IS NULL;
-		$sql = "DELETE n1 FROM nodes n1 LEFT JOIN nodes n2 on (n1.parent_node_id = n2.id) WHERE n1.parent_node_id IS NOT NULL AND n2.id IS NULL";
-		$rowCount = $db->update_query($sql);
-		error_log("Deleted stray children: $rowCount");
-	}
+        if($row_count > 0){
+                echo "got 2 args ok from AJAX, row_count: $row_count";
+        }
+        else{
+                http_response_code(500);//Internal Server Error
+                echo "Query failed";
+        }
+
+}
+
+
+if(isset($_GET["delete_class"]) && isset($_GET["id"])){
+        error_log("delete_class-------------------------------------");
+
+        $id = $_GET["id"];
+        
+        require_once("db.php");
+	$db = new db();
+        
+        require_once("sess.php");
+
+	$sess = new sess();
+	$wep = $sess->getChoosenWebpage();
+        
+        $sql = "DELETE FROM classes WHERE id = ? AND webpage_id = ?";
+        $values = array($id, $wep);//allow from current page only
+
+        $row_count = $db->update_query($sql, $values);
 
         if($row_count > 0){
-                echo "got 3 args ok from AJAX, row_count: $row_count";
+                echo "got 2 args ok from AJAX, row_count: $row_count";
         }
         else{
                 http_response_code(500);//Internal Server Error
@@ -449,7 +474,51 @@ if(isset($_GET["clear_choosen_webpage"])){
 	echo "Choosen webpage: " . $sess->getChoosenWebpage();
 }
 
+//add css class to db
+if(isset($_POST["add_class"])){
+    error_log("add_class post");
+    if(isset($_POST["name"]) && isset($_POST["css"]) && isset($_POST["wep"])){
+        $name = $_POST["name"];
+        $css = $_POST["css"];
+        $wep = $_POST["wep"];
+    }
+    else{
+        exit("param error");
+    }
+    require_once("sess.php");
+    $sess = new sess();
+    $wep2 = $sess->getChoosenWebpage();
+    
+    if($wep != $wep2){
+        exit("wep not same");
+    }
+    
+    //check has dot
+    if(substr($name, 0, 1) == "."){
+        $name = ltrim($name, ".");
+    }
+    
+    require_once("db.php");
+    $db = new db();
+    
+    $sql = "INSERT INTO classes (name, css, webpage_id) VALUES (?,?,?)";
+    $values = array($name, $css, $wep);
+    
+    error_log($sql);
+    error_log(print_r($values, true));
+    
+    try{
+	$row_count = $db->insert_query($sql, $values, false);
+    }
+    catch(Exception $e){
+	exit($e);
+    }
+    
+    echo "row_count: $row_count";
+}
+
 if(isset($_GET["add_class_to_node"])){
+    error_log("add_class_to_node");
 	if(isset($_GET["node_id"]) && isset($_GET["class_id"])){
 		$node_id = intval($_GET["node_id"]);
 		$class_id = intval($_GET["class_id"]);

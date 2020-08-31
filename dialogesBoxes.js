@@ -1,6 +1,6 @@
 inner_h = "";
   $( function() {
-    var dialog, dialog2, form, form2,
+    var dialog, dialog2, dialog3, form, form2, form3;
 
       // From http://www.whatwg.org/specs/web-apps/current-work/multipage/states-of-the-type-attribute.html#e-mail-state-%28type=email%29
       emailRegex = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/,
@@ -65,6 +65,21 @@ inner_h = "";
 	}
 	return valid;
     }
+    
+    function updateClassCss(){
+	var valid = true;
+
+	var name = $("#cl_name"),
+	wep = $("#cl_css_web_page_id"),
+	css = $("#cl_css");
+
+	//validate
+	if(valid){
+		var args = "update_class_css=yes&name="+name.val()+"&wep="+wep.val()+"&css="+css.val();
+		postAjax("ajax_operations.php", args, function(resp){alert(resp);location.reload()});
+	}
+	return valid;
+    }
 
 
 
@@ -102,6 +117,23 @@ inner_h = "";
         //allFields.removeClass( "ui-state-error" );
       }
     });
+    
+    dialog3 = $("#alter_class_css").dialog({
+      autoOpen: false,
+      height: 400,
+      width: 350,
+      modal: true,
+      buttons: {
+        "Update class css": updateClassCss,
+        Cancel: function() {
+          dialog.dialog( "close" );
+        }
+      },
+      close: function() {
+        form[ 0 ].reset();
+        //allFields.removeClass( "ui-state-error" );
+      }
+    });
  
     form = dialog.find( "form" ).on( "submit", function( event ) {
       event.preventDefault();
@@ -111,6 +143,11 @@ inner_h = "";
     form2 = dialog2.find( "form" ).on( "submit", function( event ) {
       event.preventDefault();
       console.log("edit elem css");
+    });
+    
+    form3 = dialog3.find( "form" ).on( "submit", function( event ) {
+      event.preventDefault();
+      console.log("edit class css");
     });
 
  
@@ -163,6 +200,23 @@ inner_h = "";
 	$("#el_name").val(eleme);
 	$("#el_css").val(css);
 	dialog2.dialog("open");
+    });
+    
+    $(".editClassCss").on("click", function(event){
+        alert("editClassCss");
+	event.preventDefault();
+	var parent = event.target.parentNode;
+	console.log(parent);
+
+	var id = getAfter_(parent.id);
+	var name = parent.dataset.name;
+	var css = parent.dataset.css;
+	var wep = parent.dataset.wep;
+
+	$("#cl_css_web_page_id").val(wep);
+	$("#cl_name").val(name);
+	$("#cl_css").val(css);
+	dialog3.dialog("open");
     });
 
   } );
