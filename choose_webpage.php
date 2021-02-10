@@ -12,10 +12,8 @@ $sess = new sess();
 ?>
 <!DOCTYPE html>
 <html>
-<?=$html->headOpen("choose webpage", array("charset"=>"utf-8"),
-array("https://ajax.aspnetcdn.com/ajax/jquery.ui/1.12.1/themes/cupertino/jquery-ui.css","Treant.css","style.css"),
-array("jquery-3.4.1.js", "jquery-ui.js", "raphael.js","Treant.js","theme_builder.js","dialogesBoxes.js")
-);?>
+
+<?=$html->headOpenConfig("choose webpage", array("charset"=>"utf-8"), "head1");?>
 </head>
 <body>
 
@@ -80,6 +78,10 @@ $html->p("No result from query");
 
 <button onClick="clearWp()">Clear choice</button>
 
+
+<?php
+echo getcwd();//$_SERVER['SCRIPT_FILENAME'];
+?>
 <script type="text/javascript">
 
 

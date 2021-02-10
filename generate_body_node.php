@@ -3,6 +3,7 @@
 require_once("db.php");
 require_once("html.php");
 require_once("sess.php");
+require_once("functions.php");
 
 $BODY_ELEMENT = "body"; //TODO: make user defined name, if no html elem is saved... or else if no html-elem has parent:null
 

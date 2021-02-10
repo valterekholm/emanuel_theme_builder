@@ -15,11 +15,7 @@ $BODY_ELEMENT = "body"; //TODO: make user defined
 <!doctype html>
 <html>
     <!--head-->
-    <?=$html->headOpen("Emanoel Theme Builder",
-    array("description" => "html DOM builder"),
-    array("jquery-ui.css", "Treant.css", "style.css"),
-    array("jquery-3.4.1.js", "jquery-ui.js","raphael.js","Treant.js","theme_builder.js","dialogesBoxes.js")
-);?>
+    <?=$html->headOpenConfig("choose webpage", array("charset"=>"utf-8"), "head1");?>
 
         <script>
       //using jquery ui

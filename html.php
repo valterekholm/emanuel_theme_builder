@@ -4,13 +4,15 @@ class html {
 
     private $opener;//<table>
     private $closer;//</table>
-    private $closedTags;
+	private $closedTags;
+	private $appFolder;
 
     function __construct() {
         error_log("html construct");
         $this->opener = "p";
         $this->closer = "p";
-	$this->closedTags = array('input', 'hr', 'br');
+		$this->closedTags = array('input', 'hr', 'br');
+		$this->appFolder = getAppFolder();
     }
 
     function setOpener($str){
@@ -105,7 +107,7 @@ class html {
 	 * csses simple array of strings (files)
 	 * jscripts simple array of strings (files)
 	*/
-	function headOpen($title, $metas = array(), $csses = array(), $jscripts = array()){
+	function headOpen($title, $metas = array(), $csses = array(), $jscripts = array(), $folder = ""){
 		$ret = "<head>";
 		$ret .= "<title>$title</title>";
 
@@ -122,11 +124,28 @@ class html {
 		}
 
 		foreach($jscripts as $script){
-			$ret .= "<script src='$script'></script>";			
+			$ret .= "<script src='$script'></script>";		
 		}
 
 		return $ret;
 
+	}
+
+	function headOpenConfig($title, $metas = array(), $config_name="head1", $folder = ""){
+		$ret = "<head>\n";
+		$ret .= "<title>$title</title>\n";
+
+		foreach($metas as $key => $value){
+			if($key=="charset"){
+				$ret .= "<meta charset='$value'>\n";
+			} else {
+				$ret .= "<meta name='$key' content='$value'>\n";
+			}
+		}//todo: make function for newlines and good indentations
+
+		$ret .= getCssJsFromObj(getHtmlHeadConfig($config_name), $this->appFolder);
+
+		return $ret;
 	}
 
 	function isAssoc(array $arr)//from https://stackoverflow.com/questions/173400

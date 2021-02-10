@@ -89,3 +89,89 @@ echo "</ul>";
 echo "</div>";
 
 }
+
+function getAppFolder($name="settings1"){
+	$ob = getAppSettings($name);
+	return $ob->app_folder."/";
+}
+
+function getAppSettings($name="settings1"){
+	$filename = "app_config.txt";
+	$handle = fopen($filename, "r");
+	$contents = fread($handle, filesize($filename));
+	fclose($handle);
+	$json = json_decode($contents);
+
+	$found = array();
+
+	foreach($json as $ob){
+		//print_r($ob);
+		$conf_name = $ob->name;
+		//echo "name: $name";
+		if($name == $conf_name){
+			$found = $ob;
+		}
+	}
+	return $found;
+}
+
+function getHtmlHeadConfig($name="head1"){
+	error_log("getHtmlHeadConfig: $name");
+	$filename = "html_head_config.txt";
+	$handle = fopen($filename, "r");
+	$contents = fread($handle, filesize($filename));
+	fclose($handle);
+	$json = json_decode($contents);
+
+	$found = array();
+
+	foreach($json as $ob){
+		//print_r($ob);
+		$conf_name = $ob->name;
+		//echo "name: $name";
+		if($name == $conf_name){
+			error_log("found head conf!");
+			$found = $ob;
+		}
+	}
+	return $found;
+}
+
+function getCssJsFromObj($ob, $app_dir=""){
+	$ret = "";
+	$css_folder = "";
+	$js_folder = "";
+
+	foreach($ob as $key=>$val){
+		switch($key){
+			case "css-folder":
+				$css_folder = $val."/";
+				break;
+			
+			case "js-folder":
+				$js_folder = $val."/";
+				break;
+		}
+	}
+
+	foreach($ob as $key=>$val){
+
+		switch($key){
+			case "csses":
+				foreach($val as $css){
+					$ret .= "<link rel='stylesheet' href='/$app_dir$css_folder$css'>\n";
+				}
+
+			break;
+
+			case "jses":
+				foreach($val as $js){
+					$ret .= "<script src='/$app_dir$js_folder$js'></script>\n";
+				}
+			break;
+		}
+	}
+
+	return $ret;
+}
+
