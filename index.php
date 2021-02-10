@@ -187,8 +187,8 @@ else{
 //COALESCE(n.parent_node_id, \"null\")
 //Get all nodes
 //$sql = "select n.id, parent_node_id, e.name, e.is_empty_tag, n.element_id, inner_html from nodes n left join html_element e on (n.element_id = e.id) WHERE web_page_id = $wep";
-$sql = "select n.id, e.name, e.is_empty_tag, n.parent_node_id, n.element_id, inner_html, group_concat(c.name) as 'classes' from nodes n join html_element e on (element_id = e.id) left join nodes_classes nc on (id_node = n.id) left join classes c on (id_class = c.id) where n.web_page_id=$wep group by(n.id)";
-
+//$sql = "select n.id, e.name, e.is_empty_tag, n.parent_node_id, n.element_id, inner_html, group_concat(c.name) as 'classes' from nodes n join html_element e on (element_id = e.id) left join nodes_classes nc on (id_node = n.id) left join classes c on (id_class = c.id) where n.web_page_id=$wep group by(n.id)";
+$sql = "select n.id, e.name, e.is_empty_tag, n.parent_node_id, n.element_id, inner_html, group_concat(c.name) as 'classes', coalesce(rn.times,'0') times from nodes n join html_element e on (element_id = e.id) left join nodes_classes nc on (id_node = n.id) left join classes c on (id_class = c.id) left join repeating_nodes rn on (n.id = node_id) where n.web_page_id=$wep group by(n.id)";
 
 $res = $db->select_query($sql);
 $rows_nodes = $res->fetchAll();
@@ -208,11 +208,12 @@ if((empty($rows_nodes) || count($rows_nodes) == 0) && $found_body_e){
 $found_topnode = false;
 $html->p("Nodes:");
 echo "<table id='allNodes'>";
-$html->tr("<th>id</th><th>name</th><th>parent</th><th>classes</th><th>edit class</th>");
+$html->tr("<th>id</th><th>name</th><th>parent</th><th>classes</th><th>edit class</th><th>repeat</th>");
 foreach ($rows_nodes as $row) {
     //echo "r";
     $html->tr("<td>" . $row["id"] . "</td><td>" . $row["name"] . "</td><td>" . $row["parent_node_id"] .
-    "</td><td>".$row["classes"]."</td><td><a onClick='classMenu(this.parentNode.parentNode.id); nodeStatus(this)'>class</a></td>",
+    "</td><td>".$row["classes"]."</td><td><a onClick='classMenu(this.parentNode.parentNode.id); nodeStatus(this)'>class</a></td>".
+    "<td><input type='number' value='".$row["times"]."' class='repeatTimes' data-id='". $row["id"] ."'></td>",
 array("id"=>"node_" . $row["id"]));
     if($row["parent_node_id"] == null){
 	$found_topnode = $row;
@@ -336,7 +337,7 @@ var nodes = [];
 <?php
 $nodes = array();
 foreach ($rows_nodes as $row) {
-	$nodes[] = $row;
+	$nodes[] = $row; //adding to array
 }
 $nds = json_encode($nodes);
 echo "var arr = " . json_encode($nodes, JSON_UNESCAPED_SLASHES) . ";\n";
@@ -359,10 +360,10 @@ echo "var arr = " . json_encode($nodes, JSON_UNESCAPED_SLASHES) . ";\n";
 
                 node.text.data_elementid = arr[i].element_id;
                 if (node.parentId !== null) {
-		    console.log("node has parent id: " + i);
+		            console.log("node has parent id: " + i);
                     node.text.data_parentid = node.parentId;
                 } else {
-		    console.log("node has no parent: " + i);
+		            console.log("node has no parent: " + i);
                     node.text.data_parentid = "0";
                     node.HTMLclass = "isBaseNode";
                 }
@@ -371,15 +372,24 @@ echo "var arr = " . json_encode($nodes, JSON_UNESCAPED_SLASHES) . ";\n";
                 var innerH = arr[i].inner_html; //could be null
 
                 if (null !== innerH && innerH.length > 0) {
-		    console.log("hasInnerHtml: " + i + " : " + innerH);
+		            console.log("hasInnerHtml: " + i + " : " + innerH);
                     node.HTMLclass = "hasInnerHtml"; //just for marking "has text"
                     node.text.data_innerhtml = innerH;
-		    node.nodeInnerHTML = innerH;
+		            node.nodeInnerHTML = innerH;
                 } else {
-		    console.log("has no innerHtml: " + i);
+		            console.log("has no innerHtml: " + i);
                     node.text.data_innerhtml = "";
-		    node.nodeInnerHTML = innerH;
+		            node.nodeInnerHTML = innerH;
                 }
+
+                //marking if repeating...
+                node.times = arr[i].times;
+                if(node.times > 1){
+                    node.HTMLclass += " repeating";
+                }
+
+
+
                 var btn = {val: "edit", href: "/", target: "_self"};
                 node.text.contact = btn;
 
@@ -621,6 +631,18 @@ echo "var arr = " . json_encode($nodes, JSON_UNESCAPED_SLASHES) . ";\n";
             }
             return btn;
         }
+
+        window.addEventListener("load", function() {
+            //alert("load");
+            $(".repeatTimes").change(function(){
+                //alert(this.dataset.id);
+                queryArgs = "set_node_repeat=yes&id=" + this.dataset.id + "&times=" + this.value;
+                getAjax("ajax_operations.php?"+queryArgs, function(resp){
+                    alert(resp);
+                    location.reload();
+                });
+            });
+        });
         </script>
 
     </body>

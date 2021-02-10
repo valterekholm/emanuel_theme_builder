@@ -1,0 +1,16 @@
+[
+    {
+        "name":"head1",
+        "css-folder": "",
+        "csses":["jquery-ui.css","Treant.css","style.css"],
+        "js-folder": "",
+        "jses":["jquery-3.4.1.js", "jquery-ui.js", "raphael.js","Treant.js","theme_builder.js","dialogesBoxes.js"]
+    },
+    {
+        "name":"head2",
+        "css-folder": "css",
+        "csses":["bigstyle.css"],
+        "js-folder": "",
+        "jses":["jquery-3.4.1.js", "jquery-ui.js", "raphael.js","Treant.js","theme_builder.js","dialogesBoxes.js"]
+    }
+]

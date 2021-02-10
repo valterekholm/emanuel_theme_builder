@@ -208,6 +208,20 @@ if(isset($_GET["node_status"]) && isset($_GET["id"])){
     
 }
 
+if(isset($_POST["clone_node"]) && isset($_POST["node_id"])){
+	error_log("clone node by POST");
+	require_once("db.php");
+	$node_id = $_POST["node_id"];
+
+	$sql = "INSERT INTO nodes (element_id, parent_node_id, inner_html, web_page_id) SELECT element_id, parent_node_id, inner_html, web_page_id FROM nodes WHERE id = ?";
+	error_log($sql);
+	error_log("node_id $node_id");
+	$values = array($node_id);
+	$db = new db();
+	$row_count = $db->insert_query($sql, $values, false);
+	echo "got 2 args from AJAX, row_count: $row_count";
+}
+
 if(isset($_POST["update_node"]) && isset($_POST["node_id"]) && isset($_POST["element_id"]) && isset($_POST["inner_html"]) && isset($_POST["parent_id"])){
 	error_log("update_node POST");
 
@@ -373,12 +387,12 @@ if(isset($_GET["delete_class"]) && isset($_GET["id"])){
         $id = $_GET["id"];
         
         require_once("db.php");
-	$db = new db();
+		$db = new db();
         
         require_once("sess.php");
 
-	$sess = new sess();
-	$wep = $sess->getChoosenWebpage();
+		$sess = new sess();
+		$wep = $sess->getChoosenWebpage();
         
         $sql = "DELETE FROM classes WHERE id = ? AND webpage_id = ?";
         $values = array($id, $wep);//allow from current page only
@@ -472,6 +486,24 @@ if(isset($_GET["clear_choosen_webpage"])){
 	$sess = new sess();
 	$sess->clearChoosenWebpage();
 	echo "Choosen webpage: " . $sess->getChoosenWebpage();
+}
+
+if(isset($_GET["set_node_repeat"]) && isset($_GET["id"]) && isset($_GET["times"])){
+
+	require_once("db.php");
+
+	$db = new db();
+
+	$node_id = intval($_GET["id"]);
+	$times = intval($_GET["times"]);
+
+	$sql = "INSERT INTO repeating_nodes (node_id, `times`) VALUES (?,?) ON DUPLICATE KEY UPDATE `times` = ?";
+	$values = array($node_id, $times, $times);//allow from current page only
+
+	$row_count = $db->update_query($sql, $values, false);
+
+	echo "got 3 args ok from AJAX, row_count: $row_count";
+
 }
 
 //add css class to db

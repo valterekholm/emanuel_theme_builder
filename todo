@@ -1,0 +1,16 @@
+20200831
+Make handling of css with css-query-selectors possible... maybe a table 'css_body' that has a collection of rules, then css_selectors that have i.e.
+
+	.breadcrumbs>ul li
+
+the css_body can have id, text varchar, selector_id (to css_selectors.id).
+
+Those will be printed in the <style> area of render.php
+
+---
+
+2021-02-10
+add table repeating_nodes to have some nodes repeat to simulate database fetched rows.
+
+create table repeating_nodes (node_id int, times int, primary key(node_id), foreign key (node_id) references nodes(id));
+

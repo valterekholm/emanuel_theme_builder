@@ -1,0 +1,6 @@
+[
+    {
+        "name": "settings1",
+        "app_folder": "theme_builder"
+    }
+]

@@ -65,7 +65,8 @@ else{
 
 	$found[] = $base_id;
 
-	printLevel($base_id, 0, true);
+    //recursive
+	echo printLevelNoEcho($base_id, 0, true);
 }
 ?>
 <!-- a href="index.php">Start</a-->
