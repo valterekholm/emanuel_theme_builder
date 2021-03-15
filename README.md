@@ -3,4 +3,4 @@ A prototype for a webpage-building-webbapp, using MySql, JQuery, JQuery UI, Trea
 
 I have come the point where I wonder how CSS should be added.
 
-create_db.sql is done with sudo mysqldump -d -h localhost emanoel_theme_builder > create_db.sql
+create_db.sql is done with sudo mysqldump -u root -p -d -h localhost emanoel_theme_builder > create_db.sql

@@ -31,7 +31,7 @@ CREATE TABLE `classes` (
   UNIQUE KEY `nwp` (`name`,`webpage_id`),
   KEY `webpage_id` (`webpage_id`),
   CONSTRAINT `classes_ibfk_1` FOREIGN KEY (`webpage_id`) REFERENCES `web_page` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -49,7 +49,7 @@ CREATE TABLE `element_css` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`,`web_page_id`),
   CONSTRAINT `element_css_ibfk_1` FOREIGN KEY (`name`) REFERENCES `html_element` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -65,7 +65,7 @@ CREATE TABLE `html_element` (
   `is_empty_tag` tinyint(4) DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -82,7 +82,7 @@ CREATE TABLE `nodes` (
   `inner_html` varchar(200) DEFAULT NULL,
   `web_page_id` int(11) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=37 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -96,6 +96,24 @@ CREATE TABLE `nodes_classes` (
   `id_node` int(11) DEFAULT NULL,
   `id_class` int(11) DEFAULT NULL,
   UNIQUE KEY `unique_index` (`id_node`,`id_class`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `nodes_resource`
+--
+
+DROP TABLE IF EXISTS `nodes_resource`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `nodes_resource` (
+  `node_id` int(11) DEFAULT NULL,
+  `resource_name` varchar(99) DEFAULT NULL,
+  `type_id` int(11) DEFAULT NULL,
+  KEY `node_id` (`node_id`),
+  KEY `type_id` (`type_id`),
+  CONSTRAINT `nodes_resource_ibfk_1` FOREIGN KEY (`node_id`) REFERENCES `nodes` (`id`),
+  CONSTRAINT `nodes_resource_ibfk_2` FOREIGN KEY (`type_id`) REFERENCES `resource_types` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -115,6 +133,20 @@ CREATE TABLE `repeating_nodes` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `resource_types`
+--
+
+DROP TABLE IF EXISTS `resource_types`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `resource_types` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `syntax` varchar(99) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `web_page`
 --
 
@@ -126,7 +158,7 @@ CREATE TABLE `web_page` (
   `name` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -138,4 +170,4 @@ CREATE TABLE `web_page` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-02-11  0:25:46
+-- Dump completed on 2021-03-16  0:43:08

@@ -255,3 +255,29 @@ fieldset.form select, fieldset.form input, fieldset.form textarea {
 table#allNodes input[type="number"] {
     width: 3em;
 }
+
+table#allNodes a{
+    padding: 5px;
+    border: 2px outset gray;
+    background-color: #ccc;
+}
+
+table#allNodes a:active{
+    border: 2px inset gray;
+}
+
+#images{
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    width: auto;
+    height: auto;
+    border: 1px dotted gray;
+}
+#images img{
+    opacity: 0;
+    transition: all 1s;
+}
+#images:hover img{
+    opacity:1;
+}

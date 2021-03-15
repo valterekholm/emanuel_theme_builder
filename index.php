@@ -188,7 +188,8 @@ else{
 //Get all nodes
 //$sql = "select n.id, parent_node_id, e.name, e.is_empty_tag, n.element_id, inner_html from nodes n left join html_element e on (n.element_id = e.id) WHERE web_page_id = $wep";
 //$sql = "select n.id, e.name, e.is_empty_tag, n.parent_node_id, n.element_id, inner_html, group_concat(c.name) as 'classes' from nodes n join html_element e on (element_id = e.id) left join nodes_classes nc on (id_node = n.id) left join classes c on (id_class = c.id) where n.web_page_id=$wep group by(n.id)";
-$sql = "select n.id, e.name, e.is_empty_tag, n.parent_node_id, n.element_id, inner_html, group_concat(c.name) as 'classes', coalesce(rn.times,'0') times from nodes n join html_element e on (element_id = e.id) left join nodes_classes nc on (id_node = n.id) left join classes c on (id_class = c.id) left join repeating_nodes rn on (n.id = node_id) where n.web_page_id=$wep group by(n.id)";
+//$sql = "select n.id, e.name, e.is_empty_tag, n.parent_node_id, n.element_id, inner_html, group_concat(c.name) as 'classes', coalesce(rn.times,'0') times from nodes n join html_element e on (element_id = e.id) left join nodes_classes nc on (id_node = n.id) left join classes c on (id_class = c.id) left join repeating_nodes rn on (n.id = node_id) left join nodes_resource nr ON (n.id = nr.node_id) left join resource_types rt on (type_id = rt.id) where n.web_page_id=$wep group by(n.id)";
+$sql = "select n.id, e.name, e.is_empty_tag, n.parent_node_id, n.element_id, inner_html, group_concat(c.name) as 'classes', coalesce(rn.times,'0') times, (select count(*) from nodes_resource where node_id = n.id) edit_resource from nodes n join html_element e on (element_id = e.id) left join nodes_classes nc on (id_node = n.id) left join classes c on (id_class = c.id) left join repeating_nodes rn on (n.id = node_id) where n.web_page_id=$wep group by(n.id)";
 
 $res = $db->select_query($sql);
 $rows_nodes = $res->fetchAll();
@@ -208,12 +209,12 @@ if((empty($rows_nodes) || count($rows_nodes) == 0) && $found_body_e){
 $found_topnode = false;
 $html->p("Nodes:");
 echo "<table id='allNodes'>";
-$html->tr("<th>id</th><th>name</th><th>parent</th><th>classes</th><th>edit class</th><th>repeat</th>");
+$html->tr("<th>id</th><th>name</th><th>parent</th><th>classes</th><th>edit class</th><th>repeat</th><th>edit resource</th>");
 foreach ($rows_nodes as $row) {
     //echo "r";
     $html->tr("<td>" . $row["id"] . "</td><td>" . $row["name"] . "</td><td>" . $row["parent_node_id"] .
     "</td><td>".$row["classes"]."</td><td><a onClick='classMenu(this.parentNode.parentNode.id); nodeStatus(this)'>class</a></td>".
-    "<td><input type='number' value='".$row["times"]."' class='repeatTimes' data-id='". $row["id"] ."'></td>",
+    "<td><input type='number' value='".$row["times"]."' class='repeatTimes' data-id='". $row["id"] ."'></td><td><a onClick=''>".$row["edit_resource"]."</a></td>",
 array("id"=>"node_" . $row["id"]));
     if($row["parent_node_id"] == null){
 	$found_topnode = $row;
@@ -330,6 +331,29 @@ foreach($rows_html as $r){ //html-elements
 <input type="button" value="add" onClick="addClass()"><!-- add to current webpage -->
 </form>
 </fieldset>
+</div>
+
+
+<div id="images">
+
+<?php
+$media_dir ="$wep"."_media/";
+if(file_exists($media_dir)){
+
+    $files = array_diff(scandir($media_dir), array('.', '..'));
+    $img_ext = array("jpg", "jpeg", "gif", "png");
+    foreach($files as $f){
+        if(in_array(substr($f, -3), $img_ext)){
+            echo "<div>";
+            echo "<img src='$media_dir$f' width='100'><br>";
+            echo $f;
+            echo "</div>";
+        }
+    }
+
+}
+?>
+
 </div>
 <script>
 var nodes = [];
@@ -551,26 +575,27 @@ echo "var arr = " . json_encode($nodes, JSON_UNESCAPED_SLASHES) . ";\n";
 			location.reload();
 		});
 	}
-        
+        //show button to remove class from node
         function nodeStatus(elem){
+            $(".edit_class_btn").remove();
+
             var id = getAfter_(elem.parentNode.parentNode.id);
             var queryArgs = "node_status=yes&id=" + id;
             console.log(queryArgs);
             getAjax("ajax_operations.php?"+queryArgs, function (resp) {
-			console.log(resp);
-                        var nod = JSON.parse(resp);
-                        console.log(nod);
-                        enableClassDisconn(nod.id, nod.classes);
-			//location.reload();
-		});
+			    console.log(resp);
+                var nod = JSON.parse(resp);
+                console.log(nod);
+                enableClassDisconn(nod.id, nod.classes);
+		    });
         }
         
         //to edit a node
         //enable to remove class from node
         //for any class that is related to a node
-        //classNames - array of names, or null
+        //classNames - array of names of classes, or null
         function enableClassDisconn(nodeId, classNames){
-            if(null == classNames){
+            if(null == classNames){//no classes found
                 return
             }
             console.log("enableClassDisconn " + nodeId + " " + classNames);
@@ -581,17 +606,21 @@ echo "var arr = " . json_encode($nodes, JSON_UNESCAPED_SLASHES) . ";\n";
                 var fullId = prefix + elem;
                 var classDiv = document.querySelector("#"+fullId);
                 console.log(classDiv);
-                classDiv.appendChild(makeButton("remove", function(){
-                    //alert("remove...");
-                    alert(nodeId + " " + elem);
-                    var queryArgs = "remove_class_from_node=yes&node_id="+nodeId+"&class_name="+elem;
-                    console.log(queryArgs);
-                    postAjax("ajax_operations.php", queryArgs, function (resp) {
-                        //alert(resp);
-                        location.reload();
-                    });
-                }, "remove from node " + nodeId)
-                        );
+                var newBtn = makeButton(
+                    "remove",
+                    function(){
+                        //alert("remove...");
+                        alert(nodeId + " " + elem);
+                        var queryArgs = "remove_class_from_node=yes&node_id="+nodeId+"&class_name="+elem;
+                        console.log(queryArgs);
+                        postAjax("ajax_operations.php", queryArgs, function (resp) {
+                            location.reload();
+                        });
+                    },
+                    "remove from node " + nodeId,
+                    "edit_class_btn"
+                );
+                classDiv.appendChild( newBtn );
             });
         }
         
@@ -617,7 +646,7 @@ echo "var arr = " . json_encode($nodes, JSON_UNESCAPED_SLASHES) . ";\n";
 		});
 	}
         
-        function makeButton(text, callb, title){
+        function makeButton(text, callb, title, className){
             var btn = document.createElement("button");
             btn.innerHTML = text;
             btn.onclick = callb;
@@ -628,6 +657,13 @@ echo "var arr = " . json_encode($nodes, JSON_UNESCAPED_SLASHES) . ";\n";
             else{
                 console.log("title found");
                 btn.title = title;
+            }
+
+            if(typeof className === "undefined"){
+
+            }
+            else{
+                btn.className = className
             }
             return btn;
         }
@@ -643,6 +679,22 @@ echo "var arr = " . json_encode($nodes, JSON_UNESCAPED_SLASHES) . ";\n";
                 });
             });
         });
+
+        <?php
+
+            if(file_exists("$wep"."_media/")){
+                echo "console.log('found $wep"."_media');";
+            }
+            else{
+                echo "console.log('Not found: $wep"."_media');";
+                if(mkdir("$wep"."_media")){
+                    echo "console.log('could mkdir');";
+                }
+                else{
+                    echo "alert('could not mkdir $wep"."_media');";
+                }
+            }
+        ?>
         </script>
 
     </body>

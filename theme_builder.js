@@ -110,6 +110,7 @@ function highlightOffById(id){
 	document.getElementById(id).classList.remove("highlight");
 }
 
+//to show buttons to add class
 function classMenu(id){
 	document.querySelector("#classes").classList.add("menu");
 	choosenNode = getAfter_(id);
