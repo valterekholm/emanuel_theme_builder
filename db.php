@@ -6,14 +6,16 @@ class db
 	private $user;
 	private $pass;
 	private $conn;
+	private $db_name;
 
 	function __construct()
 	{
 		error_log("construct");
 		$this->user = "builder";
 		$this->pass = "12345";
+		$this->db_name = "emanoel_theme_builder";
 		$options = array(PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC);
-		$this->conn = new PDO('mysql:host=localhost;dbname=emanoel_theme_builder', $this->user, $this->pass, $options);
+		$this->conn = new PDO('mysql:host=localhost;dbname='.$this->db_name, $this->user, $this->pass, $options);
 		$this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); //to get error-messages
 	}
 
