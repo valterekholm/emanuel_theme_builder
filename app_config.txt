@@ -1,6 +1,6 @@
 [
     {
         "name": "settings1",
-        "app_folder": "eman_theme"
+        "app_folder": "emanuel_theme_builder"
     }
 ]

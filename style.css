@@ -37,6 +37,10 @@ a {
     padding: 5px;
 }
 
+#palette_inner p:hover{
+cursor: grab;
+}
+
 #palette_inner {
     width: 100%;
     overflow: auto;
