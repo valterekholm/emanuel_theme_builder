@@ -11,8 +11,8 @@ class db
 	function __construct()
 	{
 		error_log("construct");
-		$this->user = "builder";
-		$this->pass = "12345";
+		$this->user = "root";
+		$this->pass = "abcdefgh";
 		$this->db_name = "emanoel_theme_builder";
 		$options = array(PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC);
 		$this->conn = new PDO('mysql:host=localhost;dbname='.$this->db_name, $this->user, $this->pass, $options);

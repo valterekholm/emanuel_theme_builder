@@ -1,4 +1,7 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 
 require_once("db.php");
 require_once("html.php");
@@ -86,8 +89,8 @@ echo getcwd();//$_SERVER['SCRIPT_FILENAME'];
 
 
 function savepage(){
-var wp_name = document.querySelector("#pagename");
-getAjax("ajax_operations.php?add_webpage=yes&name=" + encodeURI(wp_name.value), function(result){wp_name.value = ""; location.reload();});
+	var wp_name = document.querySelector("#pagename");
+	getAjax("ajax_operations.php?add_webpage=yes&name=" + encodeURI(wp_name.value), function(result){wp_name.value = ""; location.reload();});
 }
 
 function chooseWp(id){

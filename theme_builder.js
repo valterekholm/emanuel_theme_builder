@@ -76,23 +76,24 @@ window.onresize = function(){
 
 window.addEventListener("load", function(){
 	var nodesTable = document.querySelector("#allNodes");
-	var rows = nodesTable.getElementsByTagName("tr");
-	var len = rows.length;
+	if(nodesTable !== null){
+		var rows = nodesTable.getElementsByTagName("tr");
+		var len = rows.length;
 
-	for(var i=0; i<len; i++){
-		var r = rows[i];
-
-		r.addEventListener("mouseenter", function(){
-			var iH = this.firstElementChild.innerHTML;
-			//console.log(iH);
-			highlightNodeById("n_" + iH);
-			this.className = "higlight";
-		});
-		r.addEventListener("mouseleave", function(){
-			var iH = this.firstElementChild.innerHTML;
-			this.className = "";
-			highlightOffById("n_" + iH);
-		})
+		for(var i=0; i<len; i++){
+			var r = rows[i];
+			r.addEventListener("mouseenter", function(){
+				var iH = this.firstElementChild.innerHTML;
+				//console.log(iH);
+				highlightNodeById("n_" + iH);
+				this.className = "higlight";
+			});
+			r.addEventListener("mouseleave", function(){
+				var iH = this.firstElementChild.innerHTML;
+				this.className = "";
+				highlightOffById("n_" + iH);
+			})
+		}
 	}
 });
 
