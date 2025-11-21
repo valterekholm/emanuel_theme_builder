@@ -107,7 +107,7 @@ $res = $db->select_query($sql_wp);
 $rows_wp = $res->fetchAll();
 
 if(empty($rows_wp) || empty($sess->getChoosenWebpage())){
-	$html->p("You must first create/choose a webpage (session wep is ".$sess->getChoosenWebpage()."), <a href='choose_webpage.php'>OK</a>");
+	$html->p("You must first choose a webpage (session wep is ".$sess->getChoosenWebpage()."), <a href='choose_webpage.php'>OK</a>");
 	exit;
 }
 
