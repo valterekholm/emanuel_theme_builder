@@ -127,11 +127,3 @@ function addClassToNode(classId){
 		location.reload();
 	});
 }
-
-function makeJsonPair(key, value, isString) {
-	if(isString)
-		return key + ": '" + value + "'";
-	else{
-		return key + ": " + value;
-	}
-}

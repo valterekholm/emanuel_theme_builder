@@ -284,7 +284,7 @@ if(!$found_topnode){
                 </div>
                 <span class='shady'>*In database</span>
             </form>
-            <div class='extra_data' id='node_extra_data'></div>
+            <div class='extra_data'></div>
         </div>
 
 <div id="classes">

@@ -115,7 +115,7 @@ $(function () {
     	console.log("hej");
     	let element = document.getElementById("elementId").value;
     	//node_uses_template=yes&element_id=
-    	postAjax("ajax_operations.php", "node_uses_template=yes&element_id=" + element, function(resp){let res = JSON.parse(resp); console.log(res)});
+    	postAjax("ajax_operations.php", "node_uses_template=yes&element_id=" + element, function(resp){let res = JSON.decode(resp); console.log(res)});
     }
   });
   //todo: add

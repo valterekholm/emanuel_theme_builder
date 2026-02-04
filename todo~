@@ -26,14 +26,3 @@ LEFT JOIN classes c ON (id_class = c.id)
 LEFT JOIN repeating_nodes rn ON (n.id = node_id) WHERE n.web_page_id=10 GROUP BY(n.id)
 
 med att ta reda på om aktuell nodes html_element är kopplad via tabellen html_elements_templates
-
-ja:
-
-SELECT n.id, e.name, e.is_empty_tag, n.parent_node_id, n.element_id, inner_html, group_concat(c.name)
-AS 'classes', coalesce(rn.times,'0') times,
-(select count(*) FROM nodes_resource WHERE node_id = n.id)
-edit_resource, het.element_name as is_template FROM nodes n JOIN html_element e ON (element_id = e.id)
-LEFT JOIN nodes_classes nc ON (id_node = n.id)
-LEFT JOIN classes c ON (id_class = c.id)
-LEFT JOIN html_element_templates het ON (e.name = het.element_name)
-LEFT JOIN repeating_nodes rn ON (n.id = node_id) WHERE n.web_page_id=10 GROUP BY(n.id)

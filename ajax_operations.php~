@@ -647,15 +647,12 @@ if(isset($_POST["node_uses_template"])){
 		"WHERE e.id = $element_id";
 	     $res = $db->select_query($sql);
 		$row = $res->fetch();
-		$resp = array();
 		if(isset($row["is_template"])) {
-			$resp["uses_template"] = true;
+			echo "true";
 		}
 		else{
-			$resp["uses_template"] = false;
+			echo "false";
 		}
-		$ob = (object)$resp;
-		echo json_encode($ob);
 	}
 }
 
